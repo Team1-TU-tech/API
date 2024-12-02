@@ -34,7 +34,7 @@ KAKAO_LOGOUT_REDIRECT_URI=your_kakao_logout_redirect_uri
 
 `uvicorn app:app --reload`
 
-## 사용 방법
+## 사용 방법    
 
 웹 브라우저를 열고 `http://localhost:8000`으로 이동하여 로그인 페이지를 확인합니다. 카카오 로그인 버튼을 클릭하여 카카오 인증을 진행합니다.
 
