@@ -19,8 +19,8 @@ class KakaoAPI:
 
     def getcode_auth_url(self, scope):
         # 카카오 로그인을 위한 인증 URL 생성
-        return f'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={scope}'
-
+        #return f'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={scope}'
+        return f'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={scope}&prompt=login'
     async def get_token(self, code):
         # 카카오로부터 인증 코드를 사용해 액세스 토큰 요청
         token_request_url = 'https://kauth.kakao.com/oauth/token'
