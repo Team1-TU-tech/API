@@ -2,6 +2,11 @@ import httpx
 import os
 from dotenv import load_dotenv
 from fastapi.templating import Jinja2Templates
+import logging
+
+# 로깅 설정
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Jinja2 템플릿 설정
 templates = Jinja2Templates(directory="templates")
@@ -45,14 +50,20 @@ class KakaoAPI:
         async with httpx.AsyncClient() as client:
             response = await client.get(userinfo_endpoint, headers=headers)
         return response.json() if response.status_code == 200 else None
-    
+
     async def logout(self, client_id, logout_redirect_uri):
+        if not logout_redirect_uri:
+            logger.error("Logout redirect URI is missing.")
+        else:
+            logger.debug(f"Logout redirect URI: {logout_redirect_uri}")
+        
         # 카카오 로그아웃 URL을 호출하여 로그아웃 처리
         logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}&state=state"
         
         async with httpx.AsyncClient() as client:
-            await client.get(logout_url)
-    
+            response = await client.get(logout_url)
+            return logout_url
+
     async def refreshAccessToken(self, clientId, refresh_token):
         # 리프레시 토큰을 사용하여 액세스 토큰 갱신 요청
         url = "https://kauth.kakao.com/oauth/token"
