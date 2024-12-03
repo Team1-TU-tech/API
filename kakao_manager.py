@@ -5,8 +5,23 @@ from fastapi.templating import Jinja2Templates
 import logging
 
 # 로깅 설정
-logging.basicConfig(level=logging.DEBUG)
+# 로깅 설정
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# 콘솔 핸들러 추가
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+# 파일 핸들러 설정
+file_handler = logging.FileHandler('./user_activity.log')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 
 # Jinja2 템플릿 설정
 templates = Jinja2Templates(directory="templates")
