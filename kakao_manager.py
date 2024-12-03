@@ -48,7 +48,8 @@ class KakaoAPI:
     
     async def logout(self, client_id, logout_redirect_uri):
         # 카카오 로그아웃 URL을 호출하여 로그아웃 처리
-        logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}"
+        logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}&state=state"
+        
         async with httpx.AsyncClient() as client:
             await client.get(logout_url)
     

@@ -72,8 +72,10 @@ async def logout(request: Request):
         response = RedirectResponse(url="/")
         response.delete_cookie("access_token")  # 쿠키에서 access_token 삭제
         logger.debug("Access token removed from cookies")
-
-        return response
+        #################### 문제 ##############################
+        logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}&state=state"
+        #return response
+        return RedirectResponse(url=logout_url)  # 카카오 로그아웃 페이지로 리디렉션
     
     logger.debug("No access_token in session")
     return RedirectResponse(url="/?error=Not logged in", status_code=302)
