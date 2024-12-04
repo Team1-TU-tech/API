@@ -30,7 +30,7 @@ def get_kakao_code(request: Request):
     kakao_auth_url = kakao_api.getcode_auth_url(scope)
     return RedirectResponse(kakao_auth_url)
 
-# 카카오 로그인 후 카카오에서 리디렉션될 엔드포인트
+# 카카오 로그인 후 카카오에서 반환된 access_token과 사용자 정보를 JSON 데이터로 반환
 @app.get("/callback")
 async def kakao_callback(request: Request, code: str):
     token_info = await kakao_api.get_token(code)
