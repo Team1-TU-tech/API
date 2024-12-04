@@ -15,7 +15,7 @@ FastAPI를 사용하여 카카오 소셜 로그인, 로그아웃 기능을 구�
 프로젝트에 필요한 패키지를 설치합니다
 
 ```bash
-pip install fastapi uvicorn httpx python-dotenv jinja2
+pip install fastapi uvicorn httpx python-dotenv jinja2 itsdangerous python-multipart
 ```
 ## 환경 설정
 
