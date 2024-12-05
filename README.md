@@ -1,7 +1,8 @@
-# FastAPI Kakao Login Integration
+# FastAPI Sign up Integration
 
-FastAPI를 사용하여 회원가입 기능을 구현합니다.
-사용자는 회원가입을 위해 필요한 정보를 입력하고, 데이터는 MongoDB에 저장됩니다. 또한, 회원가입 시 아이디 중복 체크를 포함한 기본적인 유효성 검사를 수행합니다.
+FastAPI를 사용하여 회원가입 기능을 구현합니다.  
+사용자는 회원가입을 위해 필요한 정보를 입력하고, 데이터는 MongoDB에 저장됩니다.   
+또한, 회원가입 시 아이디 중복 체크를 포함한 기본적인 유효성 검사를 수행합니다.
 
 ## 기능
 
@@ -32,7 +33,7 @@ MONGOPASS=your_mongodb_password
 
 ## 사용 방법    
 
-웹 브라우저를 열고 `http://localhost:8000` 에서 실행됩니다. 
+웹 브라우저를 열고 `http://localhost:8000/docs` 에서 실행됩니다. 
 
 ## API 엔드포인트
 ### 1. 아이디 중복 체크 API
