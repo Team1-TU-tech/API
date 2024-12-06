@@ -8,12 +8,16 @@ from src.final_login.kakao_manager import KakaoAPI
 from pathlib import Path    
 import uvicorn
 import logging
+import os
 
 # 로깅 설정
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+# 환경 변수에서 secret_key 가져오기
+secret_key = os.getenv("SECRET_KEY", "default-secret-key")
 
 # 세션 미들웨어를 앱에 추가, 'your-secret-key'는 실제 프로덕션에서는 안전한 값으로 변경해야 
 app.add_middleware(SessionMiddleware, secret_key='your-secret-key')

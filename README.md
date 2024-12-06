@@ -27,6 +27,12 @@ KAKAO_CLIENT_ID=your_kakao_client_id
 KAKAO_CLIENT_SECRET=your_kakao_client_secret 
 KAKAO_REDIRECT_URI=your_kakao_redirect_uri  
 KAKAO_LOGOUT_REDIRECT_URI=your_kakao_logout_redirect_uri
+SECRET_KEY=your_secret_key
+```
+그 중 secret key는 secrets 모듈을 사용하여 랜덤생성한 키를 넣어주면 됩니다.
+```
+import secrets
+secret_key = secrets.token_hex(32)
 ```
 
 ## 실행
