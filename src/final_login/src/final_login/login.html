@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI 로그인</title>
+    <script>
+        // 로그인 함수
+        async function login() {
+            const id = document.getElementById("id").value;
+            const pw = document.getElementById("pw").value;
+
+            const response = await fetch('http://localhost:8000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: id, pw: pw })
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                // 토큰을 로컬 스토리지에 저장
+                localStorage.setItem("access_token", data.access_token);
+                alert("로그인 성공!");
+                document.getElementById("loginForm").style.display = "none";
+                document.getElementById("welcome").style.display = "block";
+            } else {
+                alert("로그인 실패! ID 또는 비밀번호를 확인해주세요.");
+            }
+        }
+
+        // 인증된 사용자에게 접근을 허용하는 함수
+        async function checkAuth() {
+            const token = localStorage.getItem("access_token");
+
+            if (!token) {
+                alert("로그인해주세요.");
+                return;
+            }
+
+            const response = await fetch('http://localhost:8000/protected', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 200) {
+                alert("인증된 사용자입니다!");
+            } else {
+                alert("인증 실패! 로그인이 만료되었거나 잘못된 토큰입니다.");
+            }
+        }
+
+        // 로그아웃 함수
+        function logout() {
+            localStorage.removeItem("access_token");
+            document.getElementById("loginForm").style.display = "block";
+            document.getElementById("welcome").style.display = "none";
+        }
+    </script>
+</head>
+<body>
+    <h1>FastAPI 로그인 테스트</h1>
+
+    <!-- 로그인 폼 -->
+    <div id="loginForm">
+        <h2>로그인</h2>
+        <form onsubmit="event.preventDefault(); login();">
+            <label for="id">ID: </label>
+            <input type="text" id="id" name="id" required><br><br>
+
+            <label for="pw">Password: </label>
+            <input type="password" id="pw" name="pw" required><br><br>
+
+            <button type="submit">로그인</button>
+        </form>
+    </div>
+
+    <!-- 인증된 사용자 페이지 -->
+    <div id="welcome" style="display: none;">
+        <h2>환영합니다!</h2>
+        <button onclick="checkAuth()">인증 상태 확인</button><br><br>
+        <button onclick="logout()">로그아웃</button>
+    </div>
+
+</body>
+</html>
