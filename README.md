@@ -15,6 +15,7 @@ FastAPI를 사용하여 회원가입 기능을 구현합니다.
 
 ```bash
 pdm install
+pip install .
 ```
 
 ## 환경 설정
