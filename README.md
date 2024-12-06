@@ -14,7 +14,7 @@ FastAPI를 사용하여 회원가입 기능을 구현합니다.
 프로젝트에 필요한 패키지를 설치합니다
 
 ```bash
-pip install -r requirements.txt
+pdm install
 ```
 
 ## 환경 설정
@@ -29,7 +29,7 @@ MONGOPASS=your_mongodb_password
 
 서버를 실행하기 위해 다음 명령어를 사용합니다:
 
-`uvicorn app:app --reload`
+` uvicorn src.final_login.app:app --reload`
 
 ## 사용 방법    
 
@@ -86,6 +86,6 @@ curl -X POST "http://127.0.0.1:8000/signup" \
 ## 기타 정보 
 
 - MongoDB Atlas: MongoDB Atlas 클라우드 서비스를 사용하여 MongoDB를 호스팅합니다. 데이터베이스와 연결 정보를 .env 파일을 통해 관리합니다.
-- FastAPI: 비동기 웹 프레임워크인 FastAPI를 사용하여 효율적인 API 서버를 구축합니다.
+- FastAPI: 비동기 웹 프레임워크인 FastAPI를 사용하여 효율적인 API 서버를5 구축합니다.
 - CORS 설정: Frontend 스택인 React.js와 같은 다른 클라이언트 애플리케이션에서 API를 호출할 수 있도록 CORS 설정을 추가했습니다.
 ---
