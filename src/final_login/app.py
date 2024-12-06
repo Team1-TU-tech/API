@@ -3,10 +3,11 @@ from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse
-from kakao_manager import KakaoAPI
+from src.final_login.kakao_manager import KakaoAPI
+#from kakao_manager import KakaoAPI
+from pathlib import Path    
 import uvicorn
 import logging
-import httpx
 
 # 로깅 설정
 logging.basicConfig(level=logging.DEBUG)
@@ -18,7 +19,7 @@ app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key='your-secret-key')
 
 # Jinja2 템플릿 엔진을 설정
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 # KakaoAPI 인스턴스를 생성
 kakao_api = KakaoAPI()
@@ -49,10 +50,10 @@ async def get_token(request: Request, code: str):
             return JSONResponse(content={"error": "Failed to get access token"}, status_code=400)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
-    
-# 엑세스 토큰으로부터 카카오에서 유저 정보 가져오려면 
-#         user_info_response = await get_user_info_from_kakao(access_token)
 
+# 현재 redirect url을 callback에서 리턴하니까 무한 리다이렉트 됨. 프론트엔드에서 리다이렉트 처리 필요    
+# 카카오에서 유저 정보 가져오려면 
+#         user_info_response = await get_user_info_from_kakao(access_token)
 # async def get_user_info_from_kakao(access_token: str):
 #     url = "https://kapi.kakao.com/v2/user/me"
 #     headers = {"Authorization": f"Bearer {access_token}"}

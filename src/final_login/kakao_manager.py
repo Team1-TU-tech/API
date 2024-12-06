@@ -2,15 +2,15 @@ import httpx
 import os
 from dotenv import load_dotenv
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import JSONResponse
 import logging
+from pathlib import Path
 
 # 로깅 설정
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Jinja2 템플릿 설정
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 # 환경 변수 로드
 load_dotenv()
