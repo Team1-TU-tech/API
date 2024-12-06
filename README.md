@@ -16,7 +16,7 @@ FastAPI를 사용하여 카카오 소셜 로그인, 로그아웃 기능을 구�
 
 ```bash
 pdm install
-pip install itsdangerous
+pip install .
 ```
 ## 환경 설정
 
