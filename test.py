@@ -182,3 +182,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         return username
     except jwt.PyJWTError:
         raise credentials_exception
+
+# 메인 페이지 (테스트용)
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to the FastAPI backend!"}
