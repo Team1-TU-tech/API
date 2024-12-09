@@ -7,12 +7,25 @@ from kakao_manager import KakaoAPI
 import uvicorn
 import logging
 import httpx
+from fastapi.middleware.cors import CORSMiddleware
 
 # 로깅 설정
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
+
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # 세션 미들웨어를 앱에 추가, 'your-secret-key'는 실제 프로덕션에서는 안전한 값으로 변경해야 
 app.add_middleware(SessionMiddleware, secret_key='your-secret-key')
@@ -78,10 +91,14 @@ async def read_root(request: Request):
     })
 
 # 로그아웃 처리 엔드포인트
-@app.get("/logout")
-async def logout(request: Request):
-    access_token = request.session.get('access_token')
+#@app.get("/logout")
+@app.post("/logout")
+async def logout(request: Request, data:dict):
+    #access_token = request.session.get('access_token')
+    access_token = data
     logger.debug(f"Initial access_token in session: {access_token}")
+
+
     if access_token:
         # 카카오 로그아웃 처리
         client_id = kakao_api.client_id
