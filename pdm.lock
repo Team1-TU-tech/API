@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:835d97d9b2fa2c0b9e19d4137bcc1e5d567a8a493d88a2cb104c5b5de11b7786"
+content_hash = "sha256:eda84943a79415a62306e08290f69c443d6d1bb3e9c11ea61987b0c0673a9b71"
 
 [[package]]
 name = "annotated-types"
@@ -99,6 +99,24 @@ dependencies = [
 files = [
     {file = "fastapi-0.115.6-py3-none-any.whl", hash = "sha256:e9240b29e36fa8f4bb7290316988e90c381e5092e0cbe84e7818cc3713bcf305"},
     {file = "fastapi-0.115.6.tar.gz", hash = "sha256:9ec46f7addc14ea472958a96aae5b5de65f39721a46aaf5705c480d9a8b76654"},
+]
+
+[[package]]
+name = "final-login"
+version = "0.1.0"
+requires_python = ">=3.11"
+path = "./."
+summary = "Default template for PDM package"
+groups = ["default"]
+dependencies = [
+    "fastapi>=0.115.6",
+    "motor>=3.6.0",
+    "pydantic>=2.10.3",
+    "pyjwt>=2.10.1",
+    "pymongo>=4.9.2",
+    "python-dotenv>=1.0.1",
+    "python-jose>=3.3.0",
+    "uvicorn>=0.32.1",
 ]
 
 [[package]]
