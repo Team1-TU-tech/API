@@ -37,7 +37,7 @@ async def login(request: Request, user: User = Depends(validate_user)):
         )
     except Exception as e:
         print(f"Error logging event: {e}")
-
+                                                                                                                        
     print("Log event should have been recorded.")
 
     return {
