@@ -60,6 +60,7 @@ async def signup(request: Request, user: UserSignUp):
             requested_id=user.id,
             ip_address=ip_address,
         )
+        # return {"is_taken": True} ### 통일? 이렇게 하면 INFO:     127.0.0.1:34886 - "POST /signup/signup HTTP/1.1" 200 OK 근데 log에는 error 제대로 찍힘 status': 'failed', 'error': 'ID already exists'
         raise HTTPException(status_code=400, detail="아이디가 이미 존재합니다.")  # 아이디가 이미 존재하는 경우 오류 발생
     
     auth_id = str(uuid.uuid4())
@@ -114,6 +115,6 @@ async def signup(request: Request, user: UserSignUp):
             requested_id=user.id,
             ip_address=ip_address,
             
-        )
+        )  
         # 예외 처리: DB 저장 실패시 HTTP 500 오류 발생
         raise HTTPException(status_code=500, detail="회원가입 처리 중 DB저장 오류가 발생했습니다.")
