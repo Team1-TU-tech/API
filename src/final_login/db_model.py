@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
-
+from typing import Optional 
 # 환경 변수 로드
 load_dotenv()
 
@@ -24,4 +24,18 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str
 
+class UserSignUp(BaseModel):
+    username: str
+    id: str
+    pw: str
+    email: str
+    phoneNumber: str
+    agreeMarketing: str
+    gender: str
+    birthday: str
+    create_at: Optional[str] = None
+    auth_id: Optional[str] = None
 
+# Pydantic 모델 (아이디 중복 체크 요청 데이터)
+class UsernameCheck(BaseModel):
+    id: str

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from datetime import timedelta
-from src.final_login.db_model import User, TokenResponse
+from src.final_login.db import User, TokenResponse
 from src.final_login.token import SECRET_KEY, ALGORITHM
 from fastapi import Depends, Request
 from src.final_login.validate import validate_user
