@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict
 import os
 from dotenv import load_dotenv
+from fastapi import FastAPI
 
 # 환경 변수 로드
 load_dotenv()
@@ -136,3 +137,30 @@ class JWTAuthentication:
         #return user
 
 get_current_user = JWTAuthentication()
+
+
+# FastAPI 애플리케이션 인스턴스 생성
+app = FastAPI()
+
+
+# 로그인 엔드포인트
+@app.post("/login")
+def login(request: User):
+    # 사용자 인증 (비밀번호 확인)
+    #user = await user_collection.find_one({"id": request.id})
+
+    #if user and user["password"] == request.password:  # 비밀번호 확인
+        # JWT 토큰 생성
+    #jwt_manager = JWTManager()
+    expires_delta = timedelta(minutes=30)  # 토큰 만료 시간 설정
+    token = jwt_manager.encode({"id": request.id}, expires_delta, SECRET_KEY, ALGORITHM)
+    
+    # 디버깅: 생성된 JWT 디코딩하여 payload 확인
+    decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    
+    print("Decoded JWT Payload:", decoded_token)
+
+    # 토큰 반환
+    return {"access_token": token, "token_type": "bearer"}
+
+    #raise HTTPException(status_code=401, detail="Invalid credentials")
