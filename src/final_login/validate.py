@@ -3,7 +3,7 @@ from jose import jwt
 from typing import Dict
 from dotenv import load_dotenv
 import os
-from src.final_login.db import user_collection, User
+from src.final_login.db_model import user_collection, User
 from fastapi import Request
 from src.final_login.log_handler import log_event
 
