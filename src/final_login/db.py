@@ -1,5 +1,4 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
@@ -23,6 +22,6 @@ class User(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
-
+    token_type: str
 
 
