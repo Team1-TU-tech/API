@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.final_login.routes.auth import auth_router
-from src.final_login.routes.protected import protected_router
 
 app = FastAPI()
 
@@ -17,4 +16,3 @@ app.add_middleware(
 
 # 라우터 등록
 app.include_router(auth_router, prefix="/auth")
-app.include_router(protected_router, prefix="/api")
