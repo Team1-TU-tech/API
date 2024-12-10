@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 from datetime import timedelta
 from src.final_login.db import User, TokenResponse
-from src.final_login.token import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from src.final_login.token import SECRET_KEY, ALGORITHM
 from fastapi import Depends, Request
 from src.final_login.validate import validate_user
 from src.final_login.token import create_access_token, create_refresh_token
 from src.final_login.log_handler import log_event
-from datetime import datetime 
+
 auth_router = APIRouter()
 
 @auth_router.post("/login", response_model=TokenResponse)
@@ -19,7 +19,6 @@ async def login(request: Request, user: User = Depends(validate_user)):
     refresh_token = create_refresh_token(data, refresh_token_expires_delta)
     
     # 로그를 위한 timestamp, device, user_id 추출
-    current_timestamp = datetime.now().isoformat()
     device = request.headers.get("User-Agent", "Unknown")
     user_id = str(user["id"])
     birthday = user.get("birthday")
@@ -28,7 +27,6 @@ async def login(request: Request, user: User = Depends(validate_user)):
     try:
         # 로그 이벤트 기록
         log_event(
-            current_timestamp=current_timestamp,
             user_id=user_id,  
             birthday=birthday,
             gender=gender,
@@ -49,8 +47,6 @@ async def login(request: Request, user: User = Depends(validate_user)):
     }
 
 
-
-
 # 로그아웃할 때 프론트엔드에서 토큰 삭제를 명시적으로 처리해야 함
 """
       localStorage.removeItem("access_token");
@@ -59,23 +55,21 @@ async def login(request: Request, user: User = Depends(validate_user)):
 @auth_router.post("/logout")
 async def logout(request: Request, user: User = Depends(validate_user)):
     print(f"User: {user}")
-    # 로그를 위한 timestamp, device, user_id 추출
-    current_timestamp = datetime.now().isoformat()
+
+    # 로그를 위한 device, user_id 추출
+
     device = request.headers.get("User-Agent", "Unknown")
     user_id = str(user["id"])
 
     try:
         # 로그 이벤트 기록
         log_event(
-            current_timestamp=current_timestamp,
             user_id=user_id,  
             device=device,     
             action="Logout",   
         )
     except Exception as e:
         print(f"Error logging event: {e}")
-
-    print("Log event should have been recorded.")
 
     return {"message": "Logged out successfully"}
 

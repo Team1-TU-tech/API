@@ -1,12 +1,10 @@
-from fastapi.security.utils import get_authorization_scheme_param
-from fastapi import Request, HTTPException, status
-from jose import jwt, JWTError
-from typing import Optional, Dict
+from fastapi import Request, HTTPException
+from jose import jwt
+from typing import Dict
 from dotenv import load_dotenv
 import os
 from src.final_login.db import user_collection, User
-from fastapi import Depends, Request
-from datetime import datetime 
+from fastapi import Request
 from src.final_login.log_handler import log_event
 
 load_dotenv()
@@ -28,27 +26,20 @@ def verify_token(token: str) -> Dict[str, str]:
 async def validate_user(request: Request, user: User):
     stored_user = await user_collection.find_one({"id": user.id})
     if not stored_user or stored_user["password"] != user.password:
-            # 로그를 위한 timestamp, device, user_id 추출
 
-        current_timestamp = datetime.now().isoformat()
         device = request.headers.get("User-Agent", "Unknown")
-        user_id = str(user.id)
-        # birthday = user.birthday
-        # gender = user.gender
+        user_id = "anonymous"
 
         try:
             # 로그 이벤트 기록
             log_event(
-                current_timestamp=current_timestamp,
                 user_id=user_id,  
-                # birthday=birthday,
-                # gender=gender,
                 device=device,     
-                action="Login"
+                action="User Validate failed",
+                error="Invalid credentials or user not found" 
             )
-        except Exception as e:
-            print(f"Error logging event: {e}")
-
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        except HTTPException as e:
+            raise e  # HTTPException을 다시 raise하여 클라이언트에게 전달
     return stored_user
 
