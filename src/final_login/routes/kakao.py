@@ -37,7 +37,7 @@ async def get_token(request: Request, code: str):
                 log_event(
                     user_id=client_id,  # 또는 user_info에서 적절한 필드 사용
                     device=device,
-                    action="Login"
+                    action="Kakao Login"
                 )
             except Exception as e:
                 print(f"Failed to log login event: {str(e)}")
@@ -74,7 +74,7 @@ async def logout(request: Request, data:dict):
             log_event(
                 user_id=client_id,
                 device=device,
-                action="Logout"
+                action="Kakao Logout"
             )
         except Exception as e:
             print(f"Failed to log logout event: {str(e)}")      
