@@ -7,12 +7,25 @@ from kakao_manager import KakaoAPI
 import uvicorn
 import logging
 import httpx
+from fastapi.middleware.cors import CORSMiddleware
 
 # 로깅 설정
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
+
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # 세션 미들웨어를 앱에 추가, 'your-secret-key'는 실제 프로덕션에서는 안전한 값으로 변경해야 
 app.add_middleware(SessionMiddleware, secret_key='your-secret-key')
@@ -30,38 +43,41 @@ def get_kakao_code(request: Request):
     kakao_auth_url = kakao_api.getcode_auth_url(scope)
     return RedirectResponse(kakao_auth_url)
 
-# 카카오 로그인 후 카카오에서 반환된 access_token과 사용자 정보를 JSON 데이터로 반환
 @app.get("/callback")
 async def kakao_callback(request: Request, code: str):
-    token_info = await kakao_api.get_token(code)
-    logger.debug(f"Token info from Kakao: {token_info}")
-    if "access_token" in token_info:
-        access_token = token_info['access_token']  # access_token을 변수에 저장
-        request.session['access_token'] = access_token
-        logger.debug(f"Access token saved in session: {access_token}")  # access_token 로그 출력
-         # 카카오에서 유저 정보 가져오기
-        user_info_response = await get_user_info_from_kakao(access_token)
+    # 원하는 URL로 리다이렉트하면서 인가 코드 포함
+    redirect_url = f"http://localhost:3000/callback?code={code}"
+    logger.debug(f"Redirecting to: {redirect_url}")
+    return RedirectResponse(url=redirect_url)
 
-        if user_info_response:
-            return JSONResponse(content=user_info_response)
+@app.get("/getToken")
+async def get_token(request: Request, code: str):
+    # code를 사용해서 토큰을 발급 받기
+    try:
+        token_info = await kakao_api.get_token(code)
+        if "access_token" in token_info:
+            access_token = token_info['access_token']
+            return JSONResponse(content={"access_token": access_token})
         else:
-            return JSONResponse(content={"error": "Failed to get user info"}, status_code=400)
-    else:
-        logger.error("Failed to authenticate with Kakao")
-        return JSONResponse(content={"error": "Failed to authenticate"}, status_code=400)
+            return JSONResponse(content={"error": "Failed to get access token"}, status_code=400)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)
+    
+# 엑세스 토큰으로부터 카카오에서 유저 정보 가져오려면 
+#         user_info_response = await get_user_info_from_kakao(access_token)
 
-async def get_user_info_from_kakao(access_token: str):
-    url = "https://kapi.kakao.com/v2/user/me"
-    headers = {"Authorization": f"Bearer {access_token}"}
+# async def get_user_info_from_kakao(access_token: str):
+#     url = "https://kapi.kakao.com/v2/user/me"
+#     headers = {"Authorization": f"Bearer {access_token}"}
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers)
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(url, headers=headers)
 
-    if response.status_code == 200:
-        return response.json()  # 유저 정보 반환
-    else:
-        logger.error(f"Failed to fetch user info from Kakao: {response.text}")
-        return None
+#     if response.status_code == 200:
+#         return response.json()  # 유저 정보 반환
+#     else:
+#         logger.error(f"Failed to fetch user info from Kakao: {response.text}")
+#         return None
 
 # 홈페이지 및 로그인/로그아웃 버튼을 표시
 @app.get("/", response_class=HTMLResponse)
@@ -75,10 +91,14 @@ async def read_root(request: Request):
     })
 
 # 로그아웃 처리 엔드포인트
-@app.get("/logout")
-async def logout(request: Request):
-    access_token = request.session.get('access_token')
+#@app.get("/logout")
+@app.post("/logout")
+async def logout(request: Request, data:dict):
+    #access_token = request.session.get('access_token')
+    access_token = data
     logger.debug(f"Initial access_token in session: {access_token}")
+
+
     if access_token:
         # 카카오 로그아웃 처리
         client_id = kakao_api.client_id
