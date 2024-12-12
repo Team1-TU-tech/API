@@ -2,9 +2,13 @@ from fastapi import FastAPI, Request, HTTPException, Form
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from kakao_manager import KakaoAPI
+from fastapi.responses import JSONResponse
+from src.final_login.kakao_manager import KakaoAPI
+#from kakao_manager import KakaoAPI
+from pathlib import Path    
 import uvicorn
 import logging
+import os
 
 # 로깅 설정
 logging.basicConfig(level=logging.DEBUG)
@@ -12,11 +16,14 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# 환경 변수에서 secret_key 가져오기
+secret_key = os.getenv("SECRET_KEY", "default-secret-key")
+
 # 세션 미들웨어를 앱에 추가, 'your-secret-key'는 실제 프로덕션에서는 안전한 값으로 변경해야 
 app.add_middleware(SessionMiddleware, secret_key='your-secret-key')
 
 # Jinja2 템플릿 엔진을 설정
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 # KakaoAPI 인스턴스를 생성
 kakao_api = KakaoAPI()
@@ -28,19 +35,41 @@ def get_kakao_code(request: Request):
     kakao_auth_url = kakao_api.getcode_auth_url(scope)
     return RedirectResponse(kakao_auth_url)
 
-# 카카오 로그인 후 카카오에서 리디렉션될 엔드포인트
 @app.get("/callback")
 async def kakao_callback(request: Request, code: str):
-    token_info = await kakao_api.get_token(code)
-    logger.debug(f"Token info from Kakao: {token_info}")
-    if "access_token" in token_info:
-        access_token = token_info['access_token']  # access_token을 변수에 저장
-        request.session['access_token'] = access_token
-        logger.debug(f"Access token saved in session: {access_token}")  # access_token 로그 출력
-        return RedirectResponse(url="/user_info", status_code=302)
-    else:
-        logger.error("Failed to authenticate with Kakao") 
-        return RedirectResponse(url="/?error=Failed to authenticate", status_code=302)
+    # 원하는 URL로 리다이렉트하면서 인가 코드 포함
+    redirect_url = f"http://localhost:3000/callback?code={code}"
+    logger.debug(f"Redirecting to: {redirect_url}")
+    return RedirectResponse(url=redirect_url)
+
+@app.get("/getToken")
+async def get_token(request: Request, code: str):
+    # code를 사용해서 토큰을 발급 받기
+    try:
+        token_info = await kakao_api.get_token(code)
+        if "access_token" in token_info:
+            access_token = token_info['access_token']
+            return JSONResponse(content={"access_token": access_token})
+        else:
+            return JSONResponse(content={"error": "Failed to get access token"}, status_code=400)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)
+
+# 현재 redirect url을 callback에서 리턴하니까 무한 리다이렉트 됨. 프론트엔드에서 리다이렉트 처리 필요    
+# 카카오에서 유저 정보 가져오려면 
+#         user_info_response = await get_user_info_from_kakao(access_token)
+# async def get_user_info_from_kakao(access_token: str):
+#     url = "https://kapi.kakao.com/v2/user/me"
+#     headers = {"Authorization": f"Bearer {access_token}"}
+
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(url, headers=headers)
+
+#     if response.status_code == 200:
+#         return response.json()  # 유저 정보 반환
+#     else:
+#         logger.error(f"Failed to fetch user info from Kakao: {response.text}")
+#         return None
 
 # 홈페이지 및 로그인/로그아웃 버튼을 표시
 @app.get("/", response_class=HTMLResponse)
@@ -62,7 +91,7 @@ async def logout(request: Request):
         # 카카오 로그아웃 처리
         client_id = kakao_api.client_id
         logout_redirect_uri = kakao_api.logout_redirect_uri
-        await kakao_api.logout(client_id, logout_redirect_uri)
+        logout_url = await kakao_api.logout(client_id, logout_redirect_uri)
 
         # 애플리케이션 내 세션에서 토큰 삭제
         request.session.pop('access_token', None)
@@ -72,8 +101,7 @@ async def logout(request: Request):
         response = RedirectResponse(url="/")
         response.delete_cookie("access_token")  # 쿠키에서 access_token 삭제
         logger.debug("Access token removed from cookies")
-
-        return response
+        return RedirectResponse(url=logout_url)  # 카카오 로그아웃 페이지로 리디렉션
     
     logger.debug("No access_token in session")
     return RedirectResponse(url="/?error=Not logged in", status_code=302)
@@ -102,4 +130,4 @@ async def refresh_token(refresh_token: str = Form(...)):
 
 # 애플리케이션을 실행하기 위한 코드
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=3000)

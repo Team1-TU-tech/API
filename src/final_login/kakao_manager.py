@@ -2,9 +2,15 @@ import httpx
 import os
 from dotenv import load_dotenv
 from fastapi.templating import Jinja2Templates
+import logging
+from pathlib import Path
+
+# 로깅 설정
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Jinja2 템플릿 설정
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 # 환경 변수 로드
 load_dotenv()
@@ -19,8 +25,9 @@ class KakaoAPI:
 
     def getcode_auth_url(self, scope):
         # 카카오 로그인을 위한 인증 URL 생성
-        return f'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={scope}'
-
+        #return f'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={scope}'
+        return f'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={scope}&prompt=login'
+    
     async def get_token(self, code):
         # 카카오로부터 인증 코드를 사용해 액세스 토큰 요청
         token_request_url = 'https://kauth.kakao.com/oauth/token'
@@ -45,13 +52,20 @@ class KakaoAPI:
         async with httpx.AsyncClient() as client:
             response = await client.get(userinfo_endpoint, headers=headers)
         return response.json() if response.status_code == 200 else None
-    
+
     async def logout(self, client_id, logout_redirect_uri):
+        if not logout_redirect_uri:
+            logger.error("Logout redirect URI is missing.")
+        else:
+            logger.debug(f"Logout redirect URI: {logout_redirect_uri}")
+        
         # 카카오 로그아웃 URL을 호출하여 로그아웃 처리
-        logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}"
+        logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}&state=state"
+        
         async with httpx.AsyncClient() as client:
-            await client.get(logout_url)
-    
+            response = await client.get(logout_url)
+            return logout_url
+
     async def refreshAccessToken(self, clientId, refresh_token):
         # 리프레시 토큰을 사용하여 액세스 토큰 갱신 요청
         url = "https://kauth.kakao.com/oauth/token"
