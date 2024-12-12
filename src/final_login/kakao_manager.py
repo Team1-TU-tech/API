@@ -32,13 +32,9 @@ class KakaoAPI:
             "code": code,
             "client_secret": self.client_secret
         }
-        print(f"Token request payload: {token_request_payload}")  # 요청 데이터 확인
 
         async with httpx.AsyncClient() as client:
             response = await client.post(token_request_url, data=token_request_payload)
-            print(f"Token request status: {response.status_code}")  # 응답 상태 코드 확인
-            print(f"Token request body: {response.text}")  # 응답 본문 디버깅
-
             response.raise_for_status()  # 상태 코드가 200이 아니면 예외 발생
             return response.json()
 
