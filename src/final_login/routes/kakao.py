@@ -1,12 +1,19 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, FastAPI
 from fastapi import Request
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.responses import JSONResponse
 from src.final_login.kakao_manager import KakaoAPI
+import os
+from dotenv import load_dotenv
 
 kakao_router = APIRouter()
-
+app = FastAPI()
 kakao_api = KakaoAPI()
+
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 # 카카오 로그인을 시작하기 위한 엔드포인트
 @kakao_router.get("/getcode")

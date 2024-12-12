@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.final_login.routes.auth import auth_router
 from src.final_login.routes.sign_up import signup_router
 from src.final_login.routes.kakao import kakao_router
+
 app = FastAPI()
 
 # CORS 설정
