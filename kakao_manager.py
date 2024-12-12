@@ -2,6 +2,7 @@ import httpx
 import os
 from dotenv import load_dotenv
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse
 import logging
 
 # 로깅 설정

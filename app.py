@@ -2,9 +2,11 @@ from fastapi import FastAPI, Request, HTTPException, Form
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse
 from kakao_manager import KakaoAPI
 import uvicorn
 import logging
+import httpx
 
 # 로깅 설정
 logging.basicConfig(level=logging.DEBUG)
@@ -28,7 +30,7 @@ def get_kakao_code(request: Request):
     kakao_auth_url = kakao_api.getcode_auth_url(scope)
     return RedirectResponse(kakao_auth_url)
 
-# 카카오 로그인 후 카카오에서 리디렉션될 엔드포인트
+# 카카오 로그인 후 카카오에서 반환된 access_token과 사용자 정보를 JSON 데이터로 반환
 @app.get("/callback")
 async def kakao_callback(request: Request, code: str):
     token_info = await kakao_api.get_token(code)
@@ -37,10 +39,29 @@ async def kakao_callback(request: Request, code: str):
         access_token = token_info['access_token']  # access_token을 변수에 저장
         request.session['access_token'] = access_token
         logger.debug(f"Access token saved in session: {access_token}")  # access_token 로그 출력
-        return RedirectResponse(url="/user_info", status_code=302)
+         # 카카오에서 유저 정보 가져오기
+        user_info_response = await get_user_info_from_kakao(access_token)
+
+        if user_info_response:
+            return JSONResponse(content=user_info_response)
+        else:
+            return JSONResponse(content={"error": "Failed to get user info"}, status_code=400)
     else:
-        logger.error("Failed to authenticate with Kakao") 
-        return RedirectResponse(url="/?error=Failed to authenticate", status_code=302)
+        logger.error("Failed to authenticate with Kakao")
+        return JSONResponse(content={"error": "Failed to authenticate"}, status_code=400)
+
+async def get_user_info_from_kakao(access_token: str):
+    url = "https://kapi.kakao.com/v2/user/me"
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()  # 유저 정보 반환
+    else:
+        logger.error(f"Failed to fetch user info from Kakao: {response.text}")
+        return None
 
 # 홈페이지 및 로그인/로그아웃 버튼을 표시
 @app.get("/", response_class=HTMLResponse)
