@@ -1,6 +1,5 @@
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter
 from fastapi import Request
-from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.responses import JSONResponse
 from src.final_login.kakao_manager import KakaoAPI
@@ -8,12 +7,8 @@ import os
 from dotenv import load_dotenv
 
 kakao_router = APIRouter()
-app = FastAPI()
 kakao_api = KakaoAPI()
 
-load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
-app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 # 카카오 로그인을 시작하기 위한 엔드포인트
 @kakao_router.get("/getcode")
@@ -47,13 +42,13 @@ async def get_token(request: Request, code: str):
 @kakao_router.post("/logout")
 async def logout(request: Request, data:dict):
     access_token = data
-
+    
     if access_token:
         # 카카오 로그아웃 처리
         client_id = kakao_api.client_id
         logout_redirect_uri = kakao_api.logout_redirect_uri
         logout_url = await kakao_api.logout(client_id, logout_redirect_uri)
-
+        
         # 애플리케이션 내 세션에서 토큰 삭제
         request.session.pop('access_token', None)
 

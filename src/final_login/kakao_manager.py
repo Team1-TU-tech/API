@@ -70,14 +70,15 @@ class KakaoAPI:
     
 
     async def logout(request: Request, client_id, logout_redirect_uri):
+        
         if not logout_redirect_uri:
             raise ValueError("Logout redirect URI is missing.")
         else:
             print(f"Logout redirect URI: {logout_redirect_uri}")
-        
+            
         # 카카오 로그아웃 URL을 호출하여 로그아웃 처리
         logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}&state=state"
-
+        print(f"Logout URI: {logout_url}")
         device = request.headers.get("User-Agent", "Unknown")
         try:
             log_event(
@@ -86,16 +87,20 @@ class KakaoAPI:
                 device=device,    
             )
             
-            # 카카오 로그아웃 요청
+            # # 카카오 로그아웃 요청
+            # async with httpx.AsyncClient() as client:
+            #     response = await client.get(logout_url)
+            #     if response.status_code == 200:
+            #         print(f"Logout successful for user {client_id}")
+            #     else:
+            #         raise ValueError(f"Logout failed for user {client_id} with status code {response.status_code}")
+            
+            # return {"message": "Logout successful", "logout_url": logout_url}
+            
             async with httpx.AsyncClient() as client:
                 response = await client.get(logout_url)
-                if response.status_code == 200:
-                    print(f"Logout successful for user {client_id}")
-                else:
-                    raise ValueError(f"Logout failed for user {client_id} with status code {response.status_code}")
+                return logout_url
             
-            return {"message": "Logout successful", "logout_url": logout_url}
-        
         except Exception as e:
             print(f"Error during logout process: {e}")
             return {"message": "Error occurred during logout", "logout_url": logout_url}

@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from src.final_login.routes.auth import auth_router
 from src.final_login.routes.sign_up import signup_router
 from src.final_login.routes.kakao import kakao_router
+import os
+from dotenv import load_dotenv
 
 app = FastAPI()
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 # CORS 설정
 origins = ["http://localhost:3000"]
