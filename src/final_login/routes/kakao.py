@@ -29,6 +29,19 @@ async def get_token(request: Request, code: str):
         token_info = await kakao_api.get_token(code)
         if "access_token" in token_info:
             access_token = token_info['access_token']
+            device = request.headers.get("User-Agent", "Unknown")
+            client_id = kakao_api.client_id
+
+            # 로그인 이벤트 기록
+            try:
+                log_event(
+                    user_id=client_id,  # 또는 user_info에서 적절한 필드 사용
+                    device=device,
+                    action="Login"
+                )
+            except Exception as e:
+                print(f"Failed to log login event: {str(e)}")
+
             return JSONResponse(content={"access_token": access_token})
         else:
             return JSONResponse(content={"error": "Failed to get access token"}, status_code=400)
