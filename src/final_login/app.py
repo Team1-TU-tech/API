@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.final_login.routes.auth import auth_router
 from src.final_login.routes.sign_up import signup_router
-
+from src.final_login.routes.kakao import kakao_router
 app = FastAPI()
 
 # CORS 설정
@@ -18,3 +18,4 @@ app.add_middleware(
 # 라우터 등록
 app.include_router(auth_router, prefix="/auth")
 app.include_router(signup_router, prefix="/signup")
+app.include_router(kakao_router, prefix="/kakao")

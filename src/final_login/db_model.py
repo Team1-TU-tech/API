@@ -37,5 +37,5 @@ class UserSignUp(BaseModel):
     auth_id: Optional[str] = None
 
 # Pydantic 모델 (아이디 중복 체크 요청 데이터)
-class UsernameCheck(BaseModel):
+class IDCheck(BaseModel):
     id: str

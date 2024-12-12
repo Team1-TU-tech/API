@@ -6,6 +6,7 @@ from fastapi import Depends, Request
 from src.final_login.validate import validate_user
 from src.final_login.token import create_access_token, create_refresh_token
 from src.final_login.log_handler import log_event
+from src.final_login.db_model import IDCheck
 
 auth_router = APIRouter()
 
@@ -49,18 +50,16 @@ async def login(request: Request, user: User = Depends(validate_user)):
       localStorage.removeItem("refresh_token");
 """
 @auth_router.post("/logout")
-async def logout(request: Request, user: User = Depends(validate_user)):
-    print(f"User: {user}")
+async def logout(request: Request, user_id: IDCheck):
 
     # 로그를 위한 device, user_id 추출
 
     device = request.headers.get("User-Agent", "Unknown")
-    user_id = str(user["id"])
 
     try:
         # 로그 이벤트 기록
         log_event(
-            user_id=user_id,  
+            user_id=user_id.id,  
             device=device,     
             action="Logout",   
         )

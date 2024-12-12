@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from datetime import timedelta
-from src.final_login.db_model import UserSignUp, UsernameCheck, user_collection
+from src.final_login.db_model import UserSignUp, IDCheck, user_collection
 from fastapi import HTTPException
 import uuid
 from datetime import datetime, timedelta
@@ -11,7 +11,7 @@ from pymongo.errors import PyMongoError
 signup_router = APIRouter()
 
 @signup_router.post("/check-id")
-async def check_username(request: Request, username_check: UsernameCheck):
+async def check_username(request: Request, username_check: IDCheck):
 
     user_id = "anonymous"  # 아직 로그인 전이므로 anonymous로 설정
     device = request.headers.get("User-Agent", "Unknown Device")
