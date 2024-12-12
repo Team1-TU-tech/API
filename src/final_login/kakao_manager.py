@@ -16,7 +16,8 @@ class KakaoAPI:
         self.client_secret = os.getenv('KAKAO_CLIENT_SECRET')
         self.redirect_uri = os.getenv('KAKAO_REDIRECT_URI')
         self.logout_redirect_uri = os.getenv('KAKAO_LOGOUT_REDIRECT_URI')
-
+        self.headers={}
+        
     def getcode_auth_url(self, scope):
         # 카카오 로그인을 위한 인증 URL 생성
         return f'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={scope}&prompt=login'
