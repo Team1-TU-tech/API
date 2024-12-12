@@ -8,9 +8,9 @@ from src.final_login.token import create_access_token, create_refresh_token
 from src.final_login.log_handler import log_event
 from src.final_login.db_model import IDCheck
 
-auth_router = APIRouter()
+router = APIRouter()
 
-@auth_router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse)
 async def login(request: Request, user: User = Depends(validate_user)):
     # 토큰 생성
     data = {"id": str(user["id"])}
@@ -54,7 +54,7 @@ async def login(request: Request, user: User = Depends(validate_user)):
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
 """
-@auth_router.post("/logout")
+@router.post("/logout")
 async def logout(request: Request, user_id: IDCheck):
 
     # 로그를 위한 device, user_id 추출

@@ -23,7 +23,7 @@ consumer = KafkaConsumer(
     value_deserializer=lambda m: json.loads(m.decode('utf-8'))
 )
 # 여러 토픽을 구독
-consumer.subscribe(['Auth_log', 'Kakao', 'Signup_log'])
+consumer.subscribe(['search_log', 'view_detail_log', 'Auth_log', 'Kakao', 'Signup_log'])
 
 # S3 클라이언트 설정
 s3 = boto3.client('s3',
@@ -80,3 +80,4 @@ def consume_and_save_to_s3(batch_size=100, timeout=10):
 
 if __name__ == '__main__':
     consume_and_save_to_s3(batch_size=100, timeout=10)
+

@@ -8,9 +8,9 @@ from src.final_login.log_handler import log_event
 from fastapi import Request
 from pymongo.errors import PyMongoError
 
-signup_router = APIRouter()
+router = APIRouter()
 
-@signup_router.post("/check-id")
+@router.post("/check-id")
 async def check_username(request: Request, username_check: IDCheck):
 
     user_id = "anonymous"  # 아직 로그인 전이므로 anonymous로 설정
@@ -43,7 +43,7 @@ async def check_username(request: Request, username_check: IDCheck):
     return {"is_taken": False}  # 아이디가 사용 가능함
 
 # 회원가입 API
-@signup_router.post("/signup")
+@router.post("/signup")
 async def signup(request: Request, user: UserSignUp):
 
     user_id = "anonymous"  # 로그인 전에는 anonymous

@@ -2,27 +2,27 @@ from fastapi import APIRouter
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 from fastapi.responses import JSONResponse
-import httpx
 from src.final_login.kakao_manager import KakaoAPI
-kakao_router = APIRouter()
+
+router = APIRouter()
 kakao_api = KakaoAPI()
 from src.final_login.log_handler import log_event
 
 # 카카오 로그인을 시작하기 위한 엔드포인트
-@kakao_router.get("/getcode")
+@router.get("/getcode")
 def get_kakao_code(request: Request):
     scope = 'profile_nickname, profile_image, account_email'  # 요청할 권한 범위
     kakao_auth_url = kakao_api.getcode_auth_url(scope)
     return RedirectResponse(kakao_auth_url)
 
-@kakao_router.get("/callback")
+@router.get("/callback")
 async def kakao_callback(request: Request, code: str):
     # 원하는 URL로 리다이렉트하면서 인가 코드 포함
     redirect_url = f"http://localhost:3000/callback?code={code}"
     return RedirectResponse(url=redirect_url)
 
 
-@kakao_router.get("/getToken")
+@router.get("/getToken")
 async def get_token(request: Request, code: str):
     # code를 사용해서 토큰을 발급 받기
     try:
@@ -50,7 +50,7 @@ async def get_token(request: Request, code: str):
         return JSONResponse(content={"error": str(e)}, status_code=400)
 
 # 로그아웃 처리 엔드포인트
-@kakao_router.post("/logout")
+@router.post("/logout")
 async def logout(request: Request, data:dict):
     access_token = data
     

@@ -13,17 +13,6 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
-# def verify_token(token: str) -> Dict[str, str]:
-#     """ JWT 토큰 검증 """
-#     try:
-#         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-#         return decoded_token
-#     except jwt.ExpiredSignatureError:
-#         raise HTTPException(status_code=401, detail="Token has expired")
-#     except jwt.JWTError:
-#         raise HTTPException(status_code=401, detail="Invalid token")
-
-
 
 # access token 재발급 함수
 def refresh_access_token(refresh_token: str, SECRET_KEY: str, ALGORITHM: str, expires_delta: timedelta):
