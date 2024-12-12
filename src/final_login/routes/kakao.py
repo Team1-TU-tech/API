@@ -3,9 +3,7 @@ from fastapi import Request
 from fastapi.responses import RedirectResponse
 from fastapi.responses import JSONResponse
 from src.final_login.kakao_manager import KakaoAPI
-import os
-from dotenv import load_dotenv
-
+import logging
 kakao_router = APIRouter()
 kakao_api = KakaoAPI()
 
@@ -24,17 +22,42 @@ async def kakao_callback(request: Request, code: str):
     return RedirectResponse(url=redirect_url)
 
 
+# @kakao_router.get("/getToken")
+# async def get_token(request: Request, code: str):
+#     # code를 사용해서 토큰을 발급 받기
+#     try:
+#         token_info = await kakao_api.get_token(code)
+#         if "access_token" in token_info:
+#             access_token = token_info['access_token']
+#             return JSONResponse(content={"access_token": access_token})
+#         else:
+#             return JSONResponse(content={"error": "Failed to get access token"}, status_code=400)
+#     except Exception as e:
+#         return JSONResponse(content={"error": str(e)}, status_code=400)
+    
+
 @kakao_router.get("/getToken")
 async def get_token(request: Request, code: str):
-    # code를 사용해서 토큰을 발급 받기
+    # 디버깅 로그 시작
+    print(f"Received code: {code}")  # 프론트엔드에서 받은 인증 코드
+
     try:
+        # 카카오 API를 사용해 토큰 요청
         token_info = await kakao_api.get_token(code)
+        print(f"Token request response: {token_info}")  # 응답 데이터 디버깅
+
+        # 액세스 토큰 확인
         if "access_token" in token_info:
             access_token = token_info['access_token']
+            print(f"Access token: {access_token}")  # 액세스 토큰 디버깅
             return JSONResponse(content={"access_token": access_token})
         else:
+            print("Access token not found in token_info")  # 디버깅
             return JSONResponse(content={"error": "Failed to get access token"}, status_code=400)
+
     except Exception as e:
+        # 에러 발생 시 디버깅
+        print(f"Error during get_token: {str(e)}")
         return JSONResponse(content={"error": str(e)}, status_code=400)
     
 

@@ -22,8 +22,8 @@ class KakaoAPI:
         # 카카오 로그인을 위한 인증 URL 생성
         return f'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={scope}&prompt=login'
     
-    async def get_token(request: Request, self, code: str, device: str):
-        # 카카오로부터 인증 코드를 사용해 액세스 토큰 요청
+
+    async def get_token(self, code: str):
         token_request_url = 'https://kauth.kakao.com/oauth/token'
         token_request_payload = {
             "grant_type": "authorization_code",
@@ -32,42 +32,16 @@ class KakaoAPI:
             "code": code,
             "client_secret": self.client_secret
         }
+        print(f"Token request payload: {token_request_payload}")  # 요청 데이터 확인
+
         async with httpx.AsyncClient() as client:
             response = await client.post(token_request_url, data=token_request_payload)
-        result = response.json()
+            print(f"Token request status: {response.status_code}")  # 응답 상태 코드 확인
+            print(f"Token request body: {response.text}")  # 응답 본문 디버깅
 
-        # 액세스 토큰 받기
-        access_token = result.get('access_token')
+            response.raise_for_status()  # 상태 코드가 200이 아니면 예외 발생
+            return response.json()
 
-        if not access_token:
-            raise Exception("Failed to retrieve access token")
-
-        # 액세스 토큰을 사용하여 카카오 사용자 정보 요청
-        user_info_url = 'https://kapi.kakao.com/v2/user/me'
-        headers = {
-            "Authorization": f"Bearer {access_token}"
-        }
-
-        async with httpx.AsyncClient() as client:
-            user_info_response = await client.get(user_info_url, headers=headers)
-        
-        # 사용자 정보 받아오기
-        user_info = user_info_response.json()
-        ####디버깅####
-        print(user_info)
-
-        account_email = user_info.get("kakao_account", {}).get("email")
-        device = request.headers.get("User-Agent", "Unknown")
-
-        # 로그 기록: 인증 토큰 요청 시작
-        log_event(
-            user_id=self.client_id,
-            device=device,
-            action="KakaoLogin",
-            account_email=account_email
-        )
-        return result
-    
 
     async def logout(request: Request, client_id, logout_redirect_uri):
         
@@ -95,3 +69,4 @@ class KakaoAPI:
         except Exception as e:
             print(f"Error during logout process: {e}")
             return {"message": "Error occurred during logout", "logout_url": logout_url}
+        
