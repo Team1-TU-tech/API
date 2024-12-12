@@ -1,0 +1,22 @@
+[project]
+name = "final_login"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "oddsummer56", email = "oddsummer56@gmail.com"},
+]
+dependencies = [
+    "fastapi>=0.115.6",
+    "uvicorn>=0.32.1",
+    "pydantic>=2.10.3",
+    "pymongo>=4.9.2",
+    "motor>=3.6.0",
+    "python-dotenv>=1.0.1",
+]
+requires-python = "==3.11.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
