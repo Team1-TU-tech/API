@@ -79,6 +79,7 @@ class KakaoAPI:
         # 카카오 로그아웃 URL을 호출하여 로그아웃 처리
         logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}&state=state"
         print(f"Logout URI: {logout_url}")
+        
         device = request.headers.get("User-Agent", "Unknown")
         try:
             log_event(
@@ -86,16 +87,6 @@ class KakaoAPI:
                 action="Logout",  
                 device=device,    
             )
-            
-            # # 카카오 로그아웃 요청
-            # async with httpx.AsyncClient() as client:
-            #     response = await client.get(logout_url)
-            #     if response.status_code == 200:
-            #         print(f"Logout successful for user {client_id}")
-            #     else:
-            #         raise ValueError(f"Logout failed for user {client_id} with status code {response.status_code}")
-            
-            # return {"message": "Logout successful", "logout_url": logout_url}
             
             async with httpx.AsyncClient() as client:
                 response = await client.get(logout_url)
