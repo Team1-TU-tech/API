@@ -24,6 +24,7 @@ async def check_username(request: Request, username_check: IDCheck):
             user_id=user_id,  
             device=device,     
             action="CheckID",
+            topic="Signup_log",
             status="failed",
             error="ID already exists", # ID가 중복될 때 error 추가
             requested_id=username_check.id,
@@ -34,6 +35,7 @@ async def check_username(request: Request, username_check: IDCheck):
         user_id=user_id,  
         device=device,     
         action="CheckID",
+        topic="Signup_log",
         status="success",
         requested_id=username_check.id,
         ip_address= ip_address
@@ -55,6 +57,7 @@ async def signup(request: Request, user: UserSignUp):
             user_id=user_id,
             device=device,
             action="SignUp ID check",
+            topic="Signup_log",
             status="failed",
             error="ID already exists", # ID가 중복될 때 error 추가
             requested_id=user.id,
@@ -97,6 +100,7 @@ async def signup(request: Request, user: UserSignUp):
             user_id=user_id,
             device=device,
             action="SignUp",
+            topic="Signup_log",
             status="success",
             requested_id=user.id,
             ip_address=ip_address,
@@ -109,6 +113,7 @@ async def signup(request: Request, user: UserSignUp):
             user_id=user_id,
             device=device,
             action="SignUp",
+            topic="Signup_log",
             status="failed",
             error=f"DB 저장 실패: {str(e)}",
             requested_id=user.id,

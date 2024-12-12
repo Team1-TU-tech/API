@@ -35,6 +35,7 @@ async def login(request: Request, user: User = Depends(validate_user)):
             gender=gender,
             device=device,     
             action="Login",
+            topic="Auth_log",
             ip_address= ip_address,
             create_at=create_at
         )
@@ -67,6 +68,7 @@ async def logout(request: Request, user_id: IDCheck):
             user_id=user_id.id,  
             device=device,     
             action="Logout",   
+            topic="Auth_log",
             ip_address= ip_address
         )
     except Exception as e:

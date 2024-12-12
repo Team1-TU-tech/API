@@ -16,7 +16,9 @@ dependencies = [
     "pyjwt>=2.10.1",
     "starlette>=0.41.3",
     "itsdangerous>=2.2.0",
+    "dnspython>=2.7.0",
     "httpx>=0.28.1",
+    "kafka-python>=2.0.2",
 ]
 requires-python = ">=3.11"
 readme = "README.md"
@@ -25,3 +27,6 @@ license = {text = "MIT"}
 
 [tool.pdm]
 distribution = false
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
