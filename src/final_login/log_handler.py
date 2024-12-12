@@ -21,15 +21,7 @@ class JsonFormatter(logging.Formatter):
 json_formatter = JsonFormatter()
 
 def log_event(user_id: str, device: str, action: str, **kwargs):
-    """
-    로그를 기록하는 함수
-    :param timestamp: 로그 수집 시간 정보
-    :param user_id: 사용자 ID
-    :param device: 디바이스 정보
-    :param action: 액션 정보 (예: 검색, 상세 조회 등)
-    :param kwargs: 추가적인 정보들 (예: 날짜, 키워드, 에러 등)
-    """
-    
+
     # 로그 메시지 생성
     log_message = {
         "timestamp": datetime.now().isoformat(),

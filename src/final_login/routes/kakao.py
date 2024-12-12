@@ -2,11 +2,11 @@ from fastapi import APIRouter
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 from fastapi.responses import JSONResponse
+import httpx
 from src.final_login.kakao_manager import KakaoAPI
-import logging
 kakao_router = APIRouter()
 kakao_api = KakaoAPI()
-
+from src.final_login.log_handler import log_event
 
 # 카카오 로그인을 시작하기 위한 엔드포인트
 @kakao_router.get("/getcode")
@@ -34,7 +34,7 @@ async def get_token(request: Request, code: str):
             return JSONResponse(content={"error": "Failed to get access token"}, status_code=400)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
-    
+
 # 로그아웃 처리 엔드포인트
 @kakao_router.post("/logout")
 async def logout(request: Request, data:dict):
@@ -52,6 +52,21 @@ async def logout(request: Request, data:dict):
         # 쿠키에서 access_token 삭제
         response = RedirectResponse(url="/")
         response.delete_cookie("access_token")  # 쿠키에서 access_token 삭제
+
+        # 로그를 위한 device 추출
+        device = request.headers.get("User-Agent", "Unknown")
+        
+        try:
+            # 로그 이벤트 기록
+            log_event(
+                user_id=client_id,
+                device=device,
+                action="Logout"
+            )
+        except Exception as e:
+            print(f"Failed to log logout event: {str(e)}")      
+        
+        
         return RedirectResponse(url=logout_url)  # 카카오 로그아웃 페이지로 리디렉션
     
     return RedirectResponse(url="/?error=Not logged in", status_code=302)

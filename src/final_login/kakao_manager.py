@@ -50,19 +50,11 @@ class KakaoAPI:
         logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}&state=state"
         print(f"Logout URI: {logout_url}")
         
-        device = request.headers.get("User-Agent", "Unknown")
         try:
-            log_event(
-                user_id=client_id,  
-                action="Logout",  
-                device=device,    
-            )
-            
             async with httpx.AsyncClient() as client:
                 response = await client.get(logout_url)
                 return logout_url
-            
+        
         except Exception as e:
             print(f"Error during logout process: {e}")
             return {"message": "Error occurred during logout", "logout_url": logout_url}
-        
