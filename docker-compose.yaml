@@ -2,7 +2,7 @@ services:
   fastapi-app:
     build: .
     ports:
-      - "7777:7777"
+      - "8000:8000"
     volumes:
       - ./src:/code/src
     env_file:
