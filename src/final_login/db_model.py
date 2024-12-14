@@ -15,15 +15,18 @@ db = client.get_database("signup")
 user_collection = db.get_collection("users")
 
 # Pydantic 모델
+# 유저 데이터터
 class User(BaseModel):
     id: str
     password: str
 
+# JWT 토큰 반환
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str
 
+# 회원가입 입력 데이터
 class UserSignUp(BaseModel):
     username: str
     id: str
@@ -36,6 +39,10 @@ class UserSignUp(BaseModel):
     create_at: Optional[str] = None
     auth_id: Optional[str] = None
 
-# Pydantic 모델 (아이디 중복 체크 요청 데이터)
+# 아이디 중복 체크
 class IDCheck(BaseModel):
     id: str
+
+# JWT 토큰 
+class TokenBody(BaseModel):
+    token: str
