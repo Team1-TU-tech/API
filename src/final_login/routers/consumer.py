@@ -28,7 +28,7 @@ consumer = KafkaConsumer(
     value_deserializer=lambda m: json.loads(m.decode('utf-8'))
 )
 # 여러 토픽을 구독
-consumer.subscribe(['Login_log', 'Logout_log', 'KakaoLogin_log', 'KakaoLogout_log', 'Signup_log'])
+consumer.subscribe(['Login_log', 'Logout_log', 'KakaoLogin_log', 'KakaoLogout_log', 'Signup_log', 'view_detail_log' , 'search_log'])
 
 # S3 클라이언트 설정
 s3 = boto3.client('s3',
@@ -63,7 +63,7 @@ def consume_and_save_to_s3(batch_size=100, timeout=10):
 
             # 업로드 조건 확인
             if len(log_messages) >= batch_size or (time.time() - start_time) >= timeout:
-                logger.info(f"배치 크기: {len(log_messages)} / 타임아웃: {time.time() - start_time}")
+                #logger.info(f"배치 크기: {len(log_messages)} / 타임아웃: {time.time() - start_time}")
                 if log_messages:
                     try:
                         # DataFrame 생성
@@ -83,7 +83,7 @@ def consume_and_save_to_s3(batch_size=100, timeout=10):
                             Key=f'{topic_name}/{timestamp}.parquet',
                             Body=buffer
                         )
-                        logger.info(f"S3 업로드 응답: {response}")
+                        #logger.info(f"S3 업로드 응답: {response}")
 
                         if response['ResponseMetadata']['HTTPStatusCode'] == 200:
                             logger.info("S3 업로드 성공!")

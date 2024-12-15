@@ -1,6 +1,5 @@
 import pytz
 from fastapi import APIRouter, Query, HTTPException, Request
-from fastapi.security import OAuth2PasswordBearer
 from typing import List, Optional
 from bson import ObjectId
 from pydantic import BaseModel
@@ -8,8 +7,12 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 from src.final_login.log_handler import log_event
 import os
-import certifi
 from dotenv import load_dotenv
+from src.final_login.validate import verify_token
+from src.final_login.token import SECRET_KEY, ALGORITHM
+from jose import JWTError
+
+
 
 load_dotenv()  # .env 파일에서 변수 로드
 
@@ -55,13 +58,28 @@ async def search_tickets(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
 ):
+    ############# 로그 데이터 및 JWT 디코딩 추가 ##############
+    token = request.headers.get("Authorization")
+    if not token:
+        print("Token is missing in the Authorization header.")
+        raise HTTPException(status_code=400, detail="Token is missing in the Authorization header.")
+
+    # JWT 토큰 디코드
+    try:
+        decoded_token = verify_token(
+            token=token,
+            SECRET_KEY=SECRET_KEY,
+            ALGORITHM=ALGORITHM,
+            refresh_token=None,
+            expires_delta=None
+        )
+        user_id = decoded_token.get("id", "anonymous")
+    except JWTError as e:
+        print(f"Token verification failed: {str(e)}")
+        raise HTTPException(status_code=401, detail="Invalid token.")
+    ######################################################
     
-    #############로그데이터를 위한 로직 추가##############
-    #body = await request.json()
     device = request.headers.get("User-Agent", "Unknown")
-    user_id = request.headers.get("id", "anonymous")
-    #user_id = body.get("id", "anonymous")
-    ###############################################
     query = {}
    
     # 카테고리 매핑 적용
@@ -129,7 +147,7 @@ async def search_tickets(
     
     try:
         log_event(
-            user_id=user_id,  # 헤더에서 받은 user_id 사용
+            user_id=user_id,  # JWT 토큰에서 추출한 user_id 사용
             device=device,     # 디바이스 정보 (User-Agent 또는 쿼리 파라미터)
             action="search",   # 액션 종류: 'Search'
             topic="search_log", #카프카 토픽 구별을 위한 컬럼
@@ -148,12 +166,28 @@ async def search_tickets(
 @router.get("/detail/{id}")
 async def get_detail_by_id(request: Request, id: str):
 
-    #############로그데이터를 위한 로직 추가##############
-    #body = await request.json()
+    ############# 로그 데이터 및 JWT 디코딩 추가 ##############
+    token = request.headers.get("Authorization")
+    if not token:
+        print("Token is missing in the Authorization header.")
+        raise HTTPException(status_code=400, detail="Token is missing in the Authorization header.")
+
+    # JWT 토큰 디코드
+    try:
+        decoded_token = verify_token(
+            token=token,
+            SECRET_KEY=SECRET_KEY,
+            ALGORITHM=ALGORITHM,
+            refresh_token=None,
+            expires_delta=None
+        )
+        user_id = decoded_token.get("id", "anonymous")
+    except JWTError as e:
+        print(f"Token verification failed: {str(e)}")
+        raise HTTPException(status_code=401, detail="Invalid token.")
+    ######################################################
+    
     device = request.headers.get("User-Agent", "Unknown")
-    #user_id = body.get("id", "anonymous")
-    user_id = request.headers.get("id", "anonymous")
-    ###############################################
 
     try:
         object_id = ObjectId(id)
