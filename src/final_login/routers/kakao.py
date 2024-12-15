@@ -1,9 +1,9 @@
 from fastapi import APIRouter
-from fastapi import Request
+from fastapi import Request, Header,  HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.responses import JSONResponse
+import httpx
 from src.final_login.kakao_manager import KakaoAPI
-
 router = APIRouter()
 kakao_api = KakaoAPI()
 from src.final_login.log_handler import log_event
@@ -38,7 +38,7 @@ async def get_token(request: Request, code: str):
                     user_id=client_id,  # 또는 user_info에서 적절한 필드 사용
                     device=device,
                     action="Kakao Login",
-                    topic="Kakao",
+                    topic="KakaoLogin_log",
                 )
             except Exception as e:
                 print(f"Failed to log login event: {str(e)}")
@@ -51,9 +51,14 @@ async def get_token(request: Request, code: str):
 
 # 로그아웃 처리 엔드포인트
 @router.post("/logout")
-async def logout(request: Request, data:dict):
-    access_token = data
+async def logout(request: Request, authorization: str = Header(None)):
     
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header is missing")
+
+    # 토큰 값 그대로 사용 (Bearer 포함)
+    access_token = authorization
+
     if access_token:
         # 카카오 로그아웃 처리
         client_id = kakao_api.client_id
@@ -71,12 +76,22 @@ async def logout(request: Request, data:dict):
         device = request.headers.get("User-Agent", "Unknown")
         
         try:
+
+            print("log_event 호출 데이터:", {
+                "user_id": client_id,
+                "device": device,
+                "action": "Kakao Logout",
+                "topic": "KakaoLogout_log",
+            })
+
+
+
             # 로그 이벤트 기록
             log_event(
                 user_id=client_id,
                 device=device,
                 action="Kakao Logout",
-                topic="Kakao",
+                topic="KakaoLogout_log",
             )
         except Exception as e:
             print(f"Failed to log logout event: {str(e)}")      

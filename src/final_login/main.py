@@ -18,8 +18,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000/"],
     allow_credentials=True,
-    allow_methods=[""],
-    allow_headers=[""],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # 라우터를 메인 앱에 연결

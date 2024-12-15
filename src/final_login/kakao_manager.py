@@ -1,8 +1,6 @@
 import httpx
 import os
 from dotenv import load_dotenv
-import logging
-from src.final_login.log_handler import log_event
 from fastapi import Request
 
 

@@ -7,6 +7,11 @@ import boto3
 import os, time
 from io import BytesIO
 from dotenv import load_dotenv
+import logging
+
+# 로깅 설정
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 # .env 파일을 로드하여 환경 변수 읽기
 load_dotenv()
@@ -23,7 +28,7 @@ consumer = KafkaConsumer(
     value_deserializer=lambda m: json.loads(m.decode('utf-8'))
 )
 # 여러 토픽을 구독
-consumer.subscribe(['search_log', 'view_detail_log', 'Auth_log', 'Kakao', 'Signup_log'])
+consumer.subscribe(['Login_log', 'Logout_log', 'KakaoLogin_log', 'KakaoLogout_log', 'Signup_log'])
 
 # S3 클라이언트 설정
 s3 = boto3.client('s3',
@@ -32,52 +37,73 @@ s3 = boto3.client('s3',
     region_name="ap-northeast-2"
     )
 
-
 # 로그 데이터 소비 및 S3에 저장
 def consume_and_save_to_s3(batch_size=100, timeout=10):
-    log_messages = []
-    start_time = time.time()
-    
+    log_messages = []  # 수집된 메시지를 저장
+    start_time = time.time()  # 시작 시간 기록
+
     while True:
-        for message in consumer:
-            log_messages.append(message.value)
-            print(f"토픽: {message.topic}, 메시지: {message.value}")
+        try:
+            # Kafka 메시지 폴링
+            records = consumer.poll(timeout_ms=500)
+            if not records:
+                logger.warning("Kafka에서 가져온 메시지가 없습니다.")
+                continue
 
-            # 배치 크기나 시간 조건이 충족되지 않으면 계속 쌓기만 함
-            if len(log_messages) < batch_size and time.time() - start_time < timeout:
-                continue  # 조건이 맞을 때까지 기다림
+            logger.info(f"Kafka에서 {len(records)}개의 레코드를 가져옴.")
 
-            # 배치 크기나 시간이 되면 S3에 업로드
-            df = pd.json_normalize(log_messages)  # JSON을 DataFrame으로 변환
+            # 메시지 처리
+            for topic_partition, messages in records.items():
+                for message in messages:
+                    try:
+                        log_messages.append(message.value)
+                        logger.info(f"로그 추가됨: {message.value}")
+                    except Exception as e:
+                        logger.error(f"메시지 처리 오류: {e}")
 
-            # DataFrame을 Parquet 형식으로 변환
-            table = pa.Table.from_pandas(df)
+            # 업로드 조건 확인
+            if len(log_messages) >= batch_size or (time.time() - start_time) >= timeout:
+                logger.info(f"배치 크기: {len(log_messages)} / 타임아웃: {time.time() - start_time}")
+                if log_messages:
+                    try:
+                        # DataFrame 생성
+                        df = pd.json_normalize(log_messages)
+                        logger.info(f"DataFrame 생성 성공:\n{df.head()}")
 
-            # 메모리 버퍼에 Parquet 파일을 저장
-            buffer = BytesIO()
-            pq.write_table(table, buffer)
-            buffer.seek(0)  # 버퍼의 처음으로 이동
+                        # Parquet 변환
+                        buffer = BytesIO()
+                        pq.write_table(pa.Table.from_pandas(df), buffer)
+                        buffer.seek(0)
 
-            # S3에 Parquet 파일 업로드
-            timestamp = time.strftime("%Y-%m-%d_%H-%M")  # 초까지 포함한 타임스탬프 생성
+                        # S3 업로드
+                        timestamp = time.strftime("%Y-%m-%d_%H-%M")
+                        topic_name = messages[0].topic if messages else "unknown_topic"
+                        response = s3.put_object(
+                            Bucket='t1-tu-data',
+                            Key=f'{topic_name}/{timestamp}.parquet',
+                            Body=buffer
+                        )
+                        logger.info(f"S3 업로드 응답: {response}")
 
-            s3.put_object(
-                Bucket='t1-tu-data',
-                Key=f'{message.topic}/{timestamp}.parquet',
-                Body=buffer
-            )
+                        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                            logger.info("S3 업로드 성공!")
+                        else:
+                            logger.error("S3 업로드 실패!")
 
-            print(f'로그가 S3에 업로드되었습니다: {message.topic}/{timestamp}.parquet')
+                    except Exception as e:
+                        logger.error(f"S3 업로드 오류: {e}")
 
-            # 배치 후 초기화
-            log_messages = []
-            start_time = time.time()  # 시간 초기화
+                    # 초기화
+                    log_messages = []
+                    start_time = time.time()
 
-        consumer.commit()  # 메시지를 처리한 후 수동으로 커밋
+        except KeyboardInterrupt:
+            logger.info("프로그램 종료.")
+            break
+        except Exception as e:
+            logger.error(f"오류 발생: {e}")
 
-        # 잠시 대기 (소비가 너무 빠르지 않게)
-        time.sleep(0.5)
+
 
 if __name__ == '__main__':
     consume_and_save_to_s3(batch_size=100, timeout=10)
-

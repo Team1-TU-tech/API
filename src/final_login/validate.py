@@ -13,7 +13,6 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
-
 # access token 재발급 함수
 def refresh_access_token(refresh_token: str, SECRET_KEY: str, ALGORITHM: str, expires_delta: timedelta):
     try:
@@ -77,4 +76,3 @@ async def validate_user(request: Request, user: User):
         except HTTPException as e:
             raise e  # HTTPException을 다시 raise하여 클라이언트에게 전달
     return stored_user
-

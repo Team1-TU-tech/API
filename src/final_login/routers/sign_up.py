@@ -37,6 +37,7 @@ async def check_username(request: Request, username_check: IDCheck):
         action="CheckID",
         topic="Signup_log",
         status="success",
+        error="None",
         requested_id=username_check.id,
         ip_address= ip_address
     )
@@ -102,6 +103,7 @@ async def signup(request: Request, user: UserSignUp):
             action="SignUp",
             topic="Signup_log",
             status="success",
+            error="None",
             requested_id=user.id,
             ip_address=ip_address,
         )
