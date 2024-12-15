@@ -86,7 +86,7 @@ def consume_and_save_to_s3(batch_size=100, timeout=10):
                         #logger.info(f"S3 업로드 응답: {response}")
 
                         if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                            logger.info("S3 업로드 성공!")
+                            logger.info("***********S3 업로드 성공!***********")
                         else:
                             logger.error("S3 업로드 실패!")
 

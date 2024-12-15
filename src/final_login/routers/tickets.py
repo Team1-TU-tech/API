@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from src.final_login.validate import verify_token
 from src.final_login.token import SECRET_KEY, ALGORITHM
 from jose import JWTError
-
+from src.final_login.db_model import user_collection
 
 
 load_dotenv()  # .env 파일에서 변수 로드
@@ -79,6 +79,17 @@ async def search_tickets(
         raise HTTPException(status_code=401, detail="Invalid token.")
     ######################################################
     
+
+    ################### 추가 정보 받아오기 (언니가 원하는대로 수정) ########################
+        # 사용자 정보 조회
+    user_info = await user_collection.find_one({"id": user_id})
+    if not user_info:
+        raise HTTPException(status_code=404, detail="User not found")
+    gender = user_info.get("gender")
+    birthday = user_info.get("birthday")
+
+    #####################################################################################
+
     device = request.headers.get("User-Agent", "Unknown")
     query = {}
    
@@ -153,7 +164,9 @@ async def search_tickets(
             topic="search_log", #카프카 토픽 구별을 위한 컬럼
             category=category if category is not None else "None", # 카테고리
             region=region if region is not None else "None",
-            keyword=keyword if keyword is not None else "None"
+            keyword=keyword if keyword is not None else "None", 
+            gender=gender, 
+            birthday=birthday
             
     )
         print("Log event should have been recorded.")
@@ -187,6 +200,17 @@ async def get_detail_by_id(request: Request, id: str):
         raise HTTPException(status_code=401, detail="Invalid token.")
     ######################################################
     
+    
+    ################### 추가 정보 받아오기 (언니가 원하는대로 수정) ########################
+        # 사용자 정보 조회
+    user_info = await user_collection.find_one({"id": user_id})
+    if not user_info:
+        raise HTTPException(status_code=404, detail="User not found")
+    gender = user_info.get("gender")
+    birthday = user_info.get("birthday")
+
+    #####################################################################################
+
     device = request.headers.get("User-Agent", "Unknown")
 
     try:
@@ -205,6 +229,8 @@ async def get_detail_by_id(request: Request, id: str):
                 title= result['title'],
                 category=result['category'] if result['category'] is not None else "None", # 카테고리
                 region=result['region'] if result['region'] is not None else "None",     # 지역
+                gender=gender,
+                birthday=birthday
                 )
             
             return {"data": result}
