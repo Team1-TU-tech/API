@@ -1,18 +1,23 @@
 from kafka import KafkaProducer
 import logging
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
+
 
 # 로거 설정
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)  # 로그 레벨을 INFO로 설정 (INFO, ERROR 등)
 
+
 # JsonFormatter 클래스 정의
 class JsonFormatter(logging.Formatter):
     def format(self, record):
+
+        kst_time = datetime.utcnow() + timedelta(hours=9)
+
         log_message = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": kst_time.isoformat(),
             "level": record.levelname,
             "message": record.getMessage()
         }
@@ -34,10 +39,11 @@ producer = KafkaProducer(
 )
 
 def log_event(user_id: str, device: str, action: str, topic: str, **kwargs):
-
+    kst_time = datetime.utcnow() + timedelta(hours=9)
+    
     # 로그 메시지 생성
     log_message = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": kst_time.isoformat(),
         "user_id": user_id,
         "device": device,
         "action": action,
