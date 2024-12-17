@@ -53,6 +53,8 @@ def consume_and_save_to_s3(batch_size=100, timeout=10):
             if start_time is None:
                 start_time = time.time()
 
+
+            ################# 각 토픽별로 time count 되게 변경 ####################
             # 배치 크기나 시간 조건이 충족되지 않으면 계속 쌓기만 함
             if len(log_messages) >= batch_size or time.time() - start_time >= timeout:
                 break  # 배치가 다 차거나 시간이 초과되면 루프 종료
@@ -72,7 +74,7 @@ def consume_and_save_to_s3(batch_size=100, timeout=10):
             # S3에 Parquet 파일 업로드
 
             kst_time = datetime.utcnow() + timedelta(hours=9)
-            timestamp = kst_time.strftime("%Y-%m-%d_%H-%M")  # 초까지 포함한 타임스탬프 생성
+            timestamp = kst_time.strftime("%Y-%m-%d_%H-%M-%S")  # 초까지 포함한 타임스탬프 생성
 
             s3.put_object(
                 Bucket='t1-tu-data',
