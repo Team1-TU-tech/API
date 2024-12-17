@@ -11,7 +11,17 @@ load_dotenv()
 aws_access_key = os.getenv("AWS_ACCESS_KEY_ID") # AWS Access Key
 aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY") # AWS Secret Key
 bucket_name = "t1-tu-data"
-prefix = "Logout_log/"
+#prefix = "logs/KakaoLogin_log/"
+#prefix = "logs/KakaoLogout_log/"
+#prefix = "logs/Login_log/"
+#prefix = "logs/Logout_log/"
+#prefix = "logs/Signup_log/"
+#prefix = "logs/search_log/"
+prefix = "logs/view_detail_log/"
+#prefix = "logs/Login_log"
+
+
+
 
 # S3 클라이언트 생성
 s3 = boto3.client('s3',

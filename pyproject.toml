@@ -19,8 +19,11 @@ dependencies = [
     "dnspython>=2.7.0",
     "httpx>=0.28.1",
     "kafka-python>=2.0.2",
+    "boto3>=1.35.82",
+    "pandas>=2.2.3",
+    "pyarrow>=18.1.0",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 readme = "README.md"
 license = {text = "MIT"}
 
