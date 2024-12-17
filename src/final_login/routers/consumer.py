@@ -104,7 +104,7 @@ def upload_to_s3(topic):
 
     # 업로드 후 초기화
     logger = logging.getLogger()
-    logger.info(f'🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢 로그가 S3에 업로드되었습니다: logs/{topic}/{timestamp}.parquet 🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢')
+    logger.info(f'🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢🐉 로그가 S3에 업로드되었습니다: logs/{topic}/{timestamp}.parquet 🐉🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢')
 
     # 업로드한 메시지와 카운트 초기화
     topics_data[topic] = []  # 메시지 초기화
