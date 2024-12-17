@@ -66,7 +66,7 @@ def consume_message(message):
         countdown_timers[topic] = threading.Timer(60.0, upload_to_s3, args=[topic])
         countdown_timers[topic].start()
     
-    # 메시지가 추가될 때마다 타이머를 새로 시작해서 10초 후에 업로드
+    # 메시지가 추가될 때마다 타이머를 새로 시작해서 60초 후에 업로드
     countdown_timers[topic].cancel()
     countdown_timers[topic] = threading.Timer(60.0, upload_to_s3, args=[topic])
     countdown_timers[topic].start()
