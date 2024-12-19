@@ -60,35 +60,34 @@ async def search_tickets(
 ):
     ############# 로그 데이터 및 JWT 디코딩 추가 ##############
     token = request.headers.get("Authorization")
-    if not token:
-        print("Token is missing in the Authorization header.")
-        raise HTTPException(status_code=400, detail="Token is missing in the Authorization header.")
+    user_id = "anonymous"
+    gender = None  # 기본값
+    birthday = None  # 기본값
 
+    if token:
     # JWT 토큰 디코드
-    try:
-        decoded_token = verify_token(
-            token=token,
-            SECRET_KEY=SECRET_KEY,
-            ALGORITHM=ALGORITHM,
-            refresh_token=None,
-            expires_delta=None
-        )
-        user_id = decoded_token.get("id", "anonymous")
-    except JWTError as e:
-        print(f"Token verification failed: {str(e)}")
-        raise HTTPException(status_code=401, detail="Invalid token.")
-    ######################################################
-    
+        try:
+            decoded_token = verify_token(
+                token=token,
+                SECRET_KEY=SECRET_KEY,
+                ALGORITHM=ALGORITHM,
+                refresh_token=None,
+                expires_delta=None
+            )
+            user_id = decoded_token.get("id", "anonymous")
 
-    ################### 추가 정보 받아오기 (언니가 원하는대로 수정) ########################
-        # 사용자 정보 조회
-    user_info = await user_collection.find_one({"id": user_id})
-    if not user_info:
-        raise HTTPException(status_code=404, detail="User not found")
-    gender = user_info.get("gender")
-    birthday = user_info.get("birthday")
-
-    #####################################################################################
+            # 로그인한 경우 추가 정보 가져오기
+            user_info = await user_collection.find_one({"id": user_id})
+            if user_info:
+                gender = user_info.get("gender")
+                birthday = user_info.get("birthday")
+            else:
+                print(f"User not found for user_id: {user_id}")
+        except JWTError as e:
+            print(f"Token verification failed: {str(e)}")
+            raise HTTPException(status_code=401, detail="Invalid token.")
+    else:
+        print("No token provided. Proceeding as anonymous user.")
 
     device = request.headers.get("User-Agent", "Unknown")
     query = {}
@@ -181,36 +180,36 @@ async def get_detail_by_id(request: Request, id: str):
 
     ############# 로그 데이터 및 JWT 디코딩 추가 ##############
     token = request.headers.get("Authorization")
-    if not token:
-        print("Token is missing in the Authorization header.")
-        raise HTTPException(status_code=400, detail="Token is missing in the Authorization header.")
+    user_id = "anonymous"  # 기본값 설정
+    gender = None  # 기본W값
+    birthday = None  # 기본값
 
-    # JWT 토큰 디코드
-    try:
-        decoded_token = verify_token(
-            token=token,
-            SECRET_KEY=SECRET_KEY,
-            ALGORITHM=ALGORITHM,
-            refresh_token=None,
-            expires_delta=None
-        )
-        user_id = decoded_token.get("id", "anonymous")
-    except JWTError as e:
-        print(f"Token verification failed: {str(e)}")
-        raise HTTPException(status_code=401, detail="Invalid token.")
-    ######################################################
-    
-    
-    ################### 추가 정보 받아오기 (언니가 원하는대로 수정) ########################
-        # 사용자 정보 조회
-    user_info = await user_collection.find_one({"id": user_id})
-    if not user_info:
-        raise HTTPException(status_code=404, detail="User not found")
-    gender = user_info.get("gender")
-    birthday = user_info.get("birthday")
+    if token:
+        # JWT 토큰 디코드
+        try:
+            decoded_token = verify_token(
+                token=token,
+                SECRET_KEY=SECRET_KEY,
+                ALGORITHM=ALGORITHM,
+                refresh_token=None,
+                expires_delta=None
+            )
+            user_id = decoded_token.get("id", "anonymous")
 
-    #####################################################################################
-
+            # 로그인한 경우 추가 정보 가져오기
+            user_info = await user_collection.find_one({"id": user_id})
+            if user_info:
+                gender = user_info.get("gender")
+                birthday = user_info.get("birthday")
+            else:
+                print(f"User not found for user_id: {user_id}")
+        except JWTError as e:
+            print(f"Token verification failed: {str(e)}")
+            raise HTTPException(status_code=401, detail="Invalid token.")
+    else:
+        print("No token provided. Proceeding as anonymous user.")
+    #########################################################
+   
     device = request.headers.get("User-Agent", "Unknown")
 
     try:
@@ -219,23 +218,29 @@ async def get_detail_by_id(request: Request, id: str):
 
         if result:
             result['_id'] = str(result['_id'])
-            
-            log_event(
-                user_id=user_id,  # 헤더에서 받은 user_id 사용
-                device=device,     # 디바이스 정보 (User-Agent 또는 쿼리 파라미터)
-                action="view_detail",   # 액션 종류: 'view_detail' (상세 조회)
-                topic="view_detail_log", #카프카 토픽 구별을 위한 컬럼
-                ticket_id= result['_id'],
-                title= result['title'],
-                category=result['category'] if result['category'] is not None else "None", # 카테고리
-                region=result['region'] if result['region'] is not None else "None",     # 지역
-                gender=gender,
-                birthday=birthday
+
+            # 로그 기록
+            try:
+                log_event(
+                    user_id=user_id,  # 헤더에서 받은 user_id 또는 "anonymous"
+                    device=device,     # 디바이스 정보 (User-Agent)
+                    action="view_detail",  # 액션 종류: 'view_detail'
+                    topic="view_detail_log",  # Kafka 토픽 구별을 위한 컬럼
+                    ticket_id=result['_id'],
+                    title=result.get('title', "None"),
+                    category=result.get('category', "None"),  # 카테고리
+                    region=result.get('region', "None"),  # 지역
+                    gender=gender,  # 로그인하지 않았다면 None
+                    birthday=birthday  # 로그인하지 않았다면 None
                 )
-            
+                print("Log event recorded successfully.")
+            except Exception as e:
+                print(f"Error logging event: {e}")
+
             return {"data": result}
         else:
             raise HTTPException(status_code=404, detail="Item not found")
     except Exception as e:
+        print(f"Error: {e}")
         raise HTTPException(status_code=400, detail="Invalid ObjectId format")
-
+         
