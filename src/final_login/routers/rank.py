@@ -34,21 +34,23 @@ s3_client = boto3.client('s3',
 
 def get_logs(bucket_name: str = "t1-tu-data", directory: str = 'view_detail_log/') -> List[dict]:
     try:
-        # S3에서 디렉토리 내 파일 목록 가져오기
-        response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=directory)
+        # Paginator 설정
+        paginator = s3_client.get_paginator('list_objects_v2')
+        operation_parameters = {'Bucket': bucket_name, 'Prefix': directory}
 
-        # 파일 목록을 가져왔는지 확인
-        if 'Contents' not in response:
-            print("No files found in the specified directory.")
-            return []
+        # 전체 Parquet 파일 키를 저장할 리스트
+        parquet_files = []
 
-        # Parquet 파일만 필터링
-        parquet_files = [obj['Key'] for obj in response['Contents'] if obj['Key'].endswith('.parquet')]
+        # Paginator를 사용하여 여러 페이지에서 파일 키 가져오기
+        for page in paginator.paginate(**operation_parameters):
+            if 'Contents' in page:
+                # Parquet 파일만 필터링
+                page_files = [obj['Key'] for obj in page['Contents'] if obj['Key'].endswith('.parquet')]
+                parquet_files.extend(page_files)
 
         if not parquet_files:
             print("No Parquet files found.")
             return []
-
         # Parquet 파일을 읽어 pandas DataFrame으로 결합
         logs = []
         for file_key in parquet_files:
@@ -102,6 +104,7 @@ async def top_tickets():
 
         if ticket_data:
             ticket_info = {
+                "id": str(ticket_data['_id']),
                 "title": ticket_data.get("title", ""),
                 "start_date": ticket_data.get("start_date", ""),
                 "end_date": ticket_data.get("end_date", ""),
@@ -110,6 +113,6 @@ async def top_tickets():
             }
             top_ticket_info.append(ticket_info)
         else:
-            top_ticket_info.append({"ticket_id": ticket_id, "error": "Ticket not found in collection"})
+            print(f'{ticket_data}가 없습니다')
 
     return {"top_tickets": top_ticket_info}

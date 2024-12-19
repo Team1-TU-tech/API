@@ -56,7 +56,7 @@ async def logout(request: Request, authorization: str = Header(None)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Authorization header is missing")
 
-    # 토큰 값 그대로 사용 (Bearer 포함)
+    # 토큰 값 그대로 사용 
     access_token = authorization
 
     if access_token:

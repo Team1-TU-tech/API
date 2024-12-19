@@ -64,30 +64,58 @@ async def search_tickets(
     gender = None  # 기본값
     birthday = None  # 기본값
 
-    if token:
-    # JWT 토큰 디코드
-        try:
-            decoded_token = verify_token(
-                token=token,
-                SECRET_KEY=SECRET_KEY,
-                ALGORITHM=ALGORITHM,
-                refresh_token=None,
-                expires_delta=None
-            )
-            user_id = decoded_token.get("id", "anonymous")
+    # if token:
+    # # JWT 토큰 디코드
+    #     try:
+    #         decoded_token = verify_token(
+    #             token=token,
+    #             SECRET_KEY=SECRET_KEY,
+    #             ALGORITHM=ALGORITHM,
+    #             refresh_token=None,
+    #             expires_delta=None
+    #         )
+    #         user_id = decoded_token.get("id", "anonymous")
 
-            # 로그인한 경우 추가 정보 가져오기
-            user_info = await user_collection.find_one({"id": user_id})
-            if user_info:
-                gender = user_info.get("gender")
-                birthday = user_info.get("birthday")
-            else:
-                print(f"User not found for user_id: {user_id}")
-        except JWTError as e:
-            print(f"Token verification failed: {str(e)}")
-            raise HTTPException(status_code=401, detail="Invalid token.")
+    #         # 로그인한 경우 추가 정보 가져오기
+    #         user_info = await user_collection.find_one({"id": user_id})
+    #         if user_info:
+    #             gender = user_info.get("gender")
+    #             birthday = user_info.get("birthday")
+    #         else:
+    #             print(f"User not found for user_id: {user_id}")
+    #     except JWTError as e:
+    #         print(f"Token verification failed: {str(e)}")
+    #         raise HTTPException(status_code=401, detail="Invalid token.")
+    # else:
+    #     print("No token provided. Proceeding as anonymous user.")
+
+    if token:
+        # 토큰이 KakaoToken인지 확인
+        if "kakaoToken" in token.lower():  # KakaoToken인 경우
+            try:
+                # Kakao Token 검증
+                kakao_user_info = verify_kakao_token(token)  # 아래 verify_kakao_token 함수 참조
+                user_id = kakao_user_info.get("id", "anonymous")
+            except HTTPException as e:
+                print(f"Kakao token verification failed: {str(e)}")
+                raise HTTPException(status_code=401, detail="Invalid Kakao token.")
+        else:
+            # 기존 JWT 디코딩 로직
+            try:
+                decoded_token = verify_token(
+                    token=token,
+                    SECRET_KEY=SECRET_KEY,
+                    ALGORITHM=ALGORITHM,
+                    refresh_token=None,
+                    expires_delta=None
+                )
+                user_id = decoded_token.get("id", "anonymous")
+            except JWTError as e:
+                print(f"Token verification failed: {str(e)}")
+                raise HTTPException(status_code=401, detail="Invalid token.")
     else:
         print("No token provided. Proceeding as anonymous user.")
+        user_id = "anonymous"  # 기본값 설정
 
     device = request.headers.get("User-Agent", "Unknown")
     query = {}
