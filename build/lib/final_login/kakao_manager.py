@@ -31,11 +31,8 @@ class KakaoAPI:
             "client_secret": self.client_secret
         }
 
-        #print(f"[DEBUG] Request payload: {token_request_payload}")
-
         async with httpx.AsyncClient() as client:
             response = await client.post(token_request_url, data=token_request_payload)
-            #print(f"[DEBUG] Response text: {response.text}")
             response.raise_for_status()  # 상태 코드가 200이 아니면 예외 발생
             return response.json()
 
@@ -49,7 +46,7 @@ class KakaoAPI:
             
         # 카카오 로그아웃 URL을 호출하여 로그아웃 처리
         logout_url = f"https://kauth.kakao.com/oauth/logout?client_id={client_id}&logout_redirect_uri={logout_redirect_uri}&state=state"
-        #print(f"Logout URI: {logout_url}")
+        print(f"Logout URI: {logout_url}")
         
         try:
             async with httpx.AsyncClient() as client:
@@ -61,12 +58,10 @@ class KakaoAPI:
             return {"message": "Error occurred during logout", "logout_url": logout_url}
         
 
-    def get_kakao_user_info(self, access_token: str):
+    def get_kakao_user_info(access_token: str):
         url = "https://kapi.kakao.com/v2/user/me"
-        self.headers = {"Authorization": f"Bearer {access_token}"}
-        print("[DEBUG] Request headers for user info:", self.headers)
-
-        response = requests.get(url, headers=self.headers)
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = requests.get(url, headers=headers)
 
         if response.status_code == 200:
             return response.json()  # 사용자 정보 반환

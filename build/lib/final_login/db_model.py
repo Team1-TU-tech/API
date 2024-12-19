@@ -13,7 +13,6 @@ MONGO_URL = f"mongodb+srv://hahahello777:{MONGO_PASSWORD}@cluster0.5vlv3.mongodb
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.get_database("signup")
 user_collection = db.get_collection("users")
-kakao_collection = db.get_collection("kakao")
 
 # Pydantic 모델
 class User(BaseModel):
@@ -39,4 +38,3 @@ class UserSignUp(BaseModel):
 
 class IDCheck(BaseModel):
     id: str
-

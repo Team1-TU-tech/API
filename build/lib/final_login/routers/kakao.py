@@ -3,12 +3,10 @@ from fastapi import Request, Header,  HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.responses import JSONResponse
 from src.final_login.kakao_manager import KakaoAPI
-from src.final_login.log_handler import log_event
-from datetime import datetime, timedelta
-from src.final_login.db_model import kakao_collection
-
 router = APIRouter()
 kakao_api = KakaoAPI()
+from src.final_login.log_handler import log_event
+from datetime import datetime, timedelta
 
 # 카카오 로그인을 시작하기 위한 엔드포인트
 @router.get("/getcode")
@@ -23,26 +21,51 @@ async def kakao_callback(request: Request, code: str):
     redirect_url = f"http://localhost:3000/callback?code={code}"
     return RedirectResponse(url=redirect_url)
 
+
+# @router.get("/getToken")
+# async def get_token(request: Request, code: str):
+#     # code를 사용해서 토큰을 발급 받기
+#     try:
+#         token_info = await kakao_api.get_token(code)
+#         if "access_token" in token_info:
+#             access_token = token_info['access_token']
+#             device = request.headers.get("User-Agent", "Unknown")
+#             client_id = kakao_api.client_id
+
+#             # 로그인 이벤트 기록
+#             try:
+#                 log_event(
+#                     user_id=client_id,  # 또는 user_info에서 적절한 필드 사용
+#                     device=device,
+#                     action="Kakao Login",
+#                     topic="KakaoLogin_log",
+#                 )
+#             except Exception as e:
+#                 print(f"Failed to log login event: {str(e)}")
+
+#             return JSONResponse(content={"access_token": access_token})
+#         else:
+#             return JSONResponse(content={"error": "Failed to get access token"}, status_code=400)
+#     except Exception as e:
+#         return JSONResponse(content={"error": str(e)}, status_code=400)
+
+
 @router.get("/getToken")
 async def get_token(request: Request, code: str):
     try:
-        # Step 1: Kakao API를 사용하여 access_token 발급
+        # 1. Kakao API를 사용하여 access_token 발급
         token_info = await kakao_api.get_token(code)
-
         if "access_token" not in token_info:
             return JSONResponse(content={"error": "Failed to get access token"}, status_code=400)
         
         access_token = token_info['access_token']
 
-        # Step 2: Kakao API를 사용하여 사용자 정보 가져오기
-        user_info = kakao_api.get_kakao_user_info(access_token)
-        #print(f"[DEBUG] User info response: {user_info}")
-
-        user_id = user_info["id"]  # Kakao 사용자 ID
+        # 2. Kakao API를 사용하여 사용자 정보 가져오기
+        user_info = get_kakao_user_info(access_token)  # Kakao 사용자 정보 가져오기 함수
+        client_id = user_info["id"]  # Kakao 사용자 ID
         nickname = user_info["properties"].get("nickname", "Unknown")
-        email = user_info.get("kakao_account", {}).get("email", "Unknown")
 
-        # UTC 시간
+                # UTC 시간
         utc_now = datetime.utcnow()
 
         # 한국 시간(KST)으로 변환 (UTC + 9시간)
@@ -50,29 +73,25 @@ async def get_token(request: Request, code: str):
 
         # KST 시간 ISO 형식으로 출력
         create_at = kst_now.isoformat()
-
-        # Step 3: DB에서 사용자 확인 및 저장
-        user = await kakao_collection.find_one({"user_id": user_id})
-
+        # 3. DB에서 사용자 확인 및 저장
+        user = await db.users.find_one({"client_id": client_id})  # client_id로 사용자 확인
         if not user:
             # 새로운 사용자 저장
             new_user = {
-                "user_id": user_id,
+                "client_id": client_id,
                 "nickname": nickname,
-                "email": email,
                 "created_at": create_at
             }
-            await kakao_collection.insert_one(new_user)
+            await db.users.insert_one(new_user)
+            print(f"New user created: {new_user['client_id']}")
         else:
-            print(f"[DEBUG] User already exists in DB: {user}")
+            print(f"User already exists: {user['client_id']}")
 
-        # Step 4: 로그 기록
+        # 4. 로그 기록
         device = request.headers.get("User-Agent", "Unknown")
-
         try:
             log_event(
-                user_id=user_id,
-                email=email,  
+                user_id=client_id,  # Kakao 사용자 ID
                 device=device,
                 action="Kakao Login",
                 topic="KakaoLogin_log",
@@ -80,9 +99,8 @@ async def get_token(request: Request, code: str):
         except Exception as e:
             print(f"Failed to log login event: {str(e)}")
 
-        # Step 5: Access Token 반환
+        # 5. Access Token 반환
         return JSONResponse(content={"access_token": access_token})
-
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
 
@@ -100,10 +118,6 @@ async def logout(request: Request, authorization: str = Header(None)):
 
     if access_token:
         # 카카오 로그아웃 처리
-        user_info = kakao_api.get_kakao_user_info(access_token)
-        user_id = user_info["id"]  # Kakao 사용자 ID
-        email = user_info.get("kakao_account", {}).get("email", "Unknown")
-
         client_id = kakao_api.client_id
         logout_redirect_uri = kakao_api.logout_redirect_uri
         logout_url = await kakao_api.logout(client_id, logout_redirect_uri)
@@ -121,17 +135,17 @@ async def logout(request: Request, authorization: str = Header(None)):
         try:
 
             print("log_event 호출 데이터:", {
-                "user_id": user_id,
-                "user_email": email,
+                "user_id": client_id,
                 "device": device,
                 "action": "Kakao Logout",
                 "topic": "KakaoLogout_log",
             })
 
+
+
             # 로그 이벤트 기록
             log_event(
-                user_id=user_id,
-                user_email=email,
+                user_id=client_id,
                 device=device,
                 action="Kakao Logout",
                 topic="KakaoLogout_log",

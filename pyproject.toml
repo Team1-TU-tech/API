@@ -22,6 +22,7 @@ dependencies = [
     "boto3>=1.35.82",
     "pandas>=2.2.3",
     "pyarrow>=18.1.0",
+    "requests>=2.32.3",
 ]
 requires-python = ">=3.9"
 readme = "README.md"

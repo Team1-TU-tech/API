@@ -77,17 +77,13 @@ async def signup(request: Request, user: UserSignUp):
     # KST 시간 ISO 형식으로 출력
     create_at = kst_now.isoformat()
 
-    # 이메일과 휴대전화번호 기본값 설정
-    email = user.email if user.email else None
-    phone_number = user.phoneNumber if user.phoneNumber else None
-    
     # 새 사용자 추가
     user_data = {
         "username": user.username,
         "id": user.id, 
         "password": user.pw,  
-        "email": email, 
-        "phoneNumber": phone_number, 
+        "email": user.email, 
+        "phoneNumber": user.phoneNumber, 
         "agreeMarketing": user.agreeMarketing, 
         "gender": user.gender,  
         "birthday": user.birthday, 
