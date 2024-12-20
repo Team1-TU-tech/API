@@ -31,8 +31,8 @@ async def login(request: Request, user: User = Depends(validate_user)):
         # 로그 이벤트 기록
         log_event(
             user_id=user_id,  
-            birthday=birthday,
-            gender=gender,
+            birthday=birthday if birthday not in [None, ""] else "None",
+            gender=gender if gender not in [None, ""] else "None",
             device=device,     
             action="Login",
             topic="Login_log",

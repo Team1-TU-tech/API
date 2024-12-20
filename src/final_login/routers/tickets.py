@@ -181,12 +181,12 @@ async def search_tickets(
             device=device,     # 디바이스 정보 (User-Agent 또는 쿼리 파라미터)
             action="search",   # 액션 종류: 'Search'
             topic="search_log",  # 카프카 토픽 구별을 위한 컬럼
-            category=category if category is not None else "None",  # 카테고리
-            region=region if region is not None else "None",
-            keyword=keyword if keyword is not None else "None",
-            gender=gender,
-            birthday=birthday,
-            email=email
+            category=category if category not in [None, ""] else "None",  # 카테고리
+            region=region if region not in [None, ""] else "None",
+            keyword=keyword if keyword not in [None, ""] else "None",
+            gender=gender if gender not in [None, ""] else "None",
+            birthday=birthday if birthday not in [None, ""] else "None",
+            email=email if email not in [None, ""] else "None",
         )
         print("Log event should have been recorded.")
     except Exception as e:
@@ -280,9 +280,9 @@ async def get_detail_by_id(request: Request, id: str):
                     title=result.get('title', "None"),
                     category=result.get('category', "None"),  # 카테고리
                     region=result.get('region', "None"),  # 지역
-                    gender=gender,  # 로그인하지 않았다면 None
-                    birthday=birthday,  # 로그인하지 않았다면 None
-                    email=email # 로그인하지 않았다면 None
+                    gender=gender if gender not in [None, ""] else "None",
+                    birthday=birthday if birthday not in [None, ""] else "None",
+                    email=email if email not in [None, ""] else "None",
                 )
                 print("Log event recorded successfully.")
             except Exception as e:
