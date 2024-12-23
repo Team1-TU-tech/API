@@ -6,6 +6,12 @@ from src.final_login.kakao_manager import KakaoAPI
 from src.final_login.log_handler import log_event
 from datetime import datetime, timedelta
 from src.final_login.db_model import kakao_collection
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+API_APP_HOST = os.getenv("API_APP_HOST", "localhost")
 
 router = APIRouter()
 kakao_api = KakaoAPI()
@@ -20,7 +26,7 @@ def get_kakao_code(request: Request):
 @router.get("/callback")
 async def kakao_callback(request: Request, code: str):
     # 원하는 URL로 리다이렉트하면서 인가 코드 포함
-    redirect_url = f"http://localhost:3000/callback?code={code}"
+    redirect_url = f"http://{API_APP_HOST}:3000/callback?code={code}"
     return RedirectResponse(url=redirect_url)
 
 @router.get("/getToken")

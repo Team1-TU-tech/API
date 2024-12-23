@@ -92,7 +92,8 @@ async def signup(request: Request, user: UserSignUp):
         "gender": user.gender,  
         "birthday": user.birthday, 
         "create_at": create_at,  
-        "auth_id": auth_id
+        "auth_id": auth_id, 
+        "user_type" : 0
     }
 
     try:
