@@ -11,7 +11,7 @@ router = APIRouter()
 
 # MongoDB 연결 설정
 client = AsyncIOMotorClient(os.getenv('MONGO_URI'))  # MongoDB URI
-db = client['test']  # 사용할 데이터베이스 이름
+db = client['tut']  # 사용할 데이터베이스 이름
 collection = db['similar']  # 사용할 컬렉션 이름
 
 # ObjectId를 처리할 수 있도록 Pydantic 모델에 커스텀 변환 추가
