@@ -13,7 +13,7 @@ router = APIRouter()
 try:
     client = AsyncIOMotorClient(mongo_uri)
     db = client['tut']
-    collection = db['ticket']
+    collection = db['data']
     print("MongoDB connected successfully!")
 except Exception as e:
     print(f"MongoDB connection error: {e}")
@@ -33,7 +33,7 @@ async def get_banner():
         # 현재 날짜 기준으로 가장 먼 start_date를 가진 티켓 11개 조회
         now = datetime.now().strftime("%Y.%m.%d")
         tickets = []
-        
+
         async for ticket in collection.find(
             {"start_date": {"$gt": now}}  # 현재 날짜 이후의 티켓들
         ).sort("start_date", 1).limit(11):  # 내림차순으로 정렬하여 11개만 반환
@@ -44,7 +44,7 @@ async def get_banner():
                 start_date=ticket.get("start_date"),
                 end_date=ticket.get("end_date")
             ))
-        
+
         return tickets
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching banner tickets: {str(e)}")

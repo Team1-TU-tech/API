@@ -5,6 +5,7 @@ from typing import List
 from dotenv import load_dotenv
 import os
 from pymongo import MongoClient
+import datetime
 
 load_dotenv()
 router = APIRouter()
@@ -12,7 +13,7 @@ router = APIRouter()
 # MongoDB 연결 설정
 client = MongoClient(os.getenv('MONGO_URI'))  # MongoDB URI
 db = client['tut']  # 사용할 데이터베이스 이름
-collection = db['ticket']  # 사용할 컬렉션 이름
+collection = db['data']  # 사용할 컬렉션 이름
 
 def serialize_objectid(data):
     """ObjectId를 문자열로 변환"""
@@ -27,8 +28,11 @@ def serialize_objectid(data):
 @router.get("/exclusive/main", response_model=List[dict])
 def get_limited_sales():
     try:
+        current_date = datetime.datetime.now().strftime("%Y.%m.%d")
         results = collection.aggregate([
-            {"$match": {"hosts": {"$size": 1}}},
+            {"$match": {"hosts": {"$size": 1},
+                        "end_date": {"$gt": current_date}
+            }},
             {"$unwind": "$hosts"},
             {"$group": {
                 "_id": "$hosts.site_id",
@@ -37,7 +41,7 @@ def get_limited_sales():
                     "title": "$title",
                     "start_date": "$start_date",
                     "end_date": "$end_date",
-                    "ticket_url": "$hosts.ticket_url",
+                    "poster_url": "$poster_url",
                     "location": "$location"
                 }},
             }},
@@ -53,3 +57,4 @@ def get_limited_sales():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+

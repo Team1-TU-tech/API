@@ -53,5 +53,5 @@ async def get_similar_performances(id: str):
     for performance in similar_performances:
         performance["id"] = str(performance["_id"])
         performance.pop("_id",None)
-    
+
     return similar_performances
