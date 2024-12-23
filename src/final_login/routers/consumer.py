@@ -31,7 +31,7 @@ consumer = KafkaConsumer(
     value_deserializer=lambda m: json.loads(m.decode('utf-8'))
 )
 # 여러 토픽을 구독
-consumer.subscribe(['Login_log', 'Logout_log', 'KakaoLogin_log', 'KakaoLogout_log', 'Signup_log', 'view_detail_log' , 'search_log'])
+consumer.subscribe(['Validate', 'Login_log', 'Logout_log', 'KakaoLogin_log', 'KakaoLogout_log', 'Signup_log', 'View_detail_log' , 'Search_log'])
 
 # S3 클라이언트 설정
 s3 = boto3.client('s3',

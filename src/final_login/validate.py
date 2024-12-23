@@ -70,6 +70,7 @@ async def validate_user(request: Request, user: User):
                 user_id=user_id,  
                 device=device,     
                 action="User Validate failed",
+                topic="Validate",
                 error="Invalid credentials or user not found" 
             )
             raise HTTPException(status_code=401, detail="Invalid credentials")
