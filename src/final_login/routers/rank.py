@@ -25,6 +25,7 @@ class TicketData(BaseModel):
     start_date: str
     end_date: str
     location: str
+    category: str
 
 @router.get("/popular", response_model=List[TicketData])
 async def get_popular_data():
@@ -34,7 +35,7 @@ async def get_popular_data():
 
         # ticket_id 리스트 추출
         ticket_ids = [ObjectId(doc["ticket_id"]) for doc in popular_docs if "ticket_id" in doc]
-
+        
         # 티켓 데이터를 한 번에 가져오기
         tickets = list(collection.find({"_id": {"$in": ticket_ids}}))
 
@@ -42,11 +43,12 @@ async def get_popular_data():
         popular = [
             TicketData(
                 id=str(ticket["_id"]),
-                title=ticket.get("title", ""),
-                poster_url=ticket.get("poster_url", ""),
-                start_date=ticket.get("start_date", ""),
-                end_date=ticket.get("end_date", ""),
-                location=ticket.get("location", "")
+                title=ticket.get("title"),
+                poster_url=ticket.get("poster_url"),
+                start_date=ticket.get("start_date"),
+                end_date=ticket.get("end_date"),
+                location=ticket.get("location"),
+                category=ticket.get("category")
             )
             for ticket in tickets
         ]

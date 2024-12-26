@@ -39,6 +39,7 @@ def get_exclusive_sales(site_id: int = None):
                 "end_date": result.get("end_date"),
                 "poster_url": result.get("poster_url"),
                 "location": result.get("location"),
+                "category": result.get("category")
             })
 
         if not exclusive_data:
@@ -48,3 +49,4 @@ def get_exclusive_sales(site_id: int = None):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+

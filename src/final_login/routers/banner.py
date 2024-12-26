@@ -25,6 +25,7 @@ class TicketData(BaseModel):
     poster_url: Optional[str] = None
     start_date: str
     end_date: str
+    category: str
 
 # 배너에 표시할 티켓 데이터를 조회하는 API
 @router.get("/banner", response_model=List[TicketData])
@@ -33,7 +34,7 @@ async def get_banner():
         # 현재 날짜 기준으로 가장 먼 start_date를 가진 티켓 11개 조회
         now = datetime.now().strftime("%Y.%m.%d")
         tickets = []
-
+        
         async for ticket in collection.find(
             {"start_date": {"$gt": now}}  # 현재 날짜 이후의 티켓들
         ).sort("start_date", 1).limit(11):  # 내림차순으로 정렬하여 11개만 반환
@@ -42,9 +43,10 @@ async def get_banner():
                 title=ticket.get("title"),
                 poster_url=ticket.get("poster_url"),
                 start_date=ticket.get("start_date"),
-                end_date=ticket.get("end_date")
+                end_date=ticket.get("end_date"),
+                category=ticket.get("category")
             ))
-
+        
         return tickets
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching banner tickets: {str(e)}")

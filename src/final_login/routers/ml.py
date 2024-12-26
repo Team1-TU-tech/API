@@ -28,12 +28,13 @@ class ObjectIdStr(ObjectId):
 
 # similar_performances 반환 모델
 class SimilarPerformance(BaseModel):
+    id: str
     title: str
     location: str
     start_date: str
     end_date: str
     poster_url: str
-    id: str
+    category: str
 
 # 요청에 대한 모델 정의
 class Item(BaseModel):
@@ -53,5 +54,6 @@ async def get_similar_performances(id: str):
     for performance in similar_performances:
         performance["id"] = str(performance["_id"])
         performance.pop("_id",None)
-
+    
     return similar_performances
+

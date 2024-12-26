@@ -42,7 +42,8 @@ def get_limited_sales():
                     "start_date": "$start_date",
                     "end_date": "$end_date",
                     "poster_url": "$poster_url",
-                    "location": "$location"
+                    "location": "$location",
+                    "category": "$category"
                 }},
             }},
             {"$project": {"items": {"$slice": ["$items", 4]}}}
