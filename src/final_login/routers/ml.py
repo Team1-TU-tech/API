@@ -34,7 +34,7 @@ class SimilarPerformance(BaseModel):
     start_date: str
     end_date: str
     poster_url: str
-    category: Optional[str]
+    #category: Optional[str]
 
 # 요청에 대한 모델 정의
 class Item(BaseModel):

@@ -116,3 +116,4 @@ for message in consumer:
     consume_message(message)
 
 if __name__ == '__main__':
+
