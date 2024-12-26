@@ -114,6 +114,3 @@ def upload_to_s3(topic):
 # 메시지 수신 및 처리 시작
 for message in consumer:
     consume_message(message)
-
-if __name__ == '__main__':
-
