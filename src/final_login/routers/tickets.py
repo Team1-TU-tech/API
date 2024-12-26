@@ -6,7 +6,7 @@ from bson import ObjectId
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
-from src.database.routers.log_handler import *
+from src.final_login.log_handler import *
 import os
 import certifi
 from dotenv import load_dotenv
