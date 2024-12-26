@@ -74,7 +74,6 @@ async def get_token(request: Request, code: str):
 
         else:
             print(f"[DEBUG] User already exists in DB: {user}")
-            nickname = user.get("nickname", "Unknown")
             user_type = user.get("user_type", 0)
 
         # Step 4: 로그 기록
