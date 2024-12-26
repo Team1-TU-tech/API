@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
-from typing import List
+from typing import List,Optional
 from dotenv import load_dotenv
 import os
 
@@ -34,7 +34,7 @@ class SimilarPerformance(BaseModel):
     start_date: str
     end_date: str
     poster_url: str
-    category: str
+    category: Optional[str]
 
 # 요청에 대한 모델 정의
 class Item(BaseModel):
