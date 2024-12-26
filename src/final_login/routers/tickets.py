@@ -132,7 +132,7 @@ async def search_tickets(
             user_id=user_id,  # 헤더에서 받은 user_id 사용
             device=device,     # 디바이스 정보 (User-Agent 또는 쿼리 파라미터)
             action="search",   # 액션 종류: 'Search'
-            topic="search_log", #카프카 토픽 구별을 위한 컬럼
+            topic="Search_log", #카프카 토픽 구별을 위한 컬럼
             category=category if category is not None else "None", # 카테고리
             region=region if region is not None else "None",
             keyword=keyword if keyword is not None else "None"
@@ -166,7 +166,7 @@ async def get_detail_by_id(request: Request, id: str):
                 user_id=user_id,  # 헤더에서 받은 user_id 사용
                 device=device,     # 디바이스 정보 (User-Agent 또는 쿼리 파라미터)
                 action="view_detail",   # 액션 종류: 'view_detail' (상세 조회)
-                topic="view_detail_log", #카프카 토픽 구별을 위한 컬럼
+                topic="View_detail_log", #카프카 토픽 구별을 위한 컬럼
                 ticket_id= result['_id'],
                 title= result['title'],
                 category=result['category'] if result['category'] is not None else "None", # 카테고리
