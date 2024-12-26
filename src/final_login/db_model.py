@@ -36,7 +36,8 @@ class UserSignUp(BaseModel):
     birthday: str
     create_at: Optional[str] = None
     auth_id: Optional[str] = None
-
+    user_type: Optional[int] = 0  
+    
 class IDCheck(BaseModel):
     id: str
 
