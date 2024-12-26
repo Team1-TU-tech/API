@@ -7,6 +7,14 @@ import boto3
 import os, time
 from io import BytesIO
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
+import logging
+from collections import defaultdict
+import threading
+
+# 로깅 설정
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 # .env 파일을 로드하여 환경 변수 읽기
 load_dotenv()
@@ -32,52 +40,79 @@ s3 = boto3.client('s3',
     region_name="ap-northeast-2"
     )
 
+# 각 토픽에 대한 메시지와 타이머를 저장하는 딕셔너리
+topics_data = {}
+countdown_timers = {}
 
-# 로그 데이터 소비 및 S3에 저장
-def consume_and_save_to_s3(batch_size=100, timeout=10):
-    log_messages = []
-    start_time = time.time()
-    
-    while True:
-        for message in consumer:
-            log_messages.append(message.value)
-            print(f"토픽: {message.topic}, 메시지: {message.value}")
+# 토픽별 메시지 수
+topic_message_count = {}
 
-            # 배치 크기나 시간 조건이 충족되지 않으면 계속 쌓기만 함
-            if len(log_messages) < batch_size and time.time() - start_time < timeout:
-                continue  # 조건이 맞을 때까지 기다림
+# 메시지를 수신하고 처리하는 함수
+def consume_message(message):
+    topic = message.topic
+    log_message = message.value
 
-            # 배치 크기나 시간이 되면 S3에 업로드
-            df = pd.json_normalize(log_messages)  # JSON을 DataFrame으로 변환
+    # 각 토픽별로 메시지 처리 시작
+    if topic not in topics_data:
+        topics_data[topic] = []
+        topic_message_count[topic] = 0  # 카운트를 초기화
 
-            # DataFrame을 Parquet 형식으로 변환
-            table = pa.Table.from_pandas(df)
+    # 새로운 메시지를 쌓는다
+    topics_data[topic].append(log_message)
+    topic_message_count[topic] += 1  # 메시지 수 카운트
 
-            # 메모리 버퍼에 Parquet 파일을 저장
-            buffer = BytesIO()
-            pq.write_table(table, buffer)
-            buffer.seek(0)  # 버퍼의 처음으로 이동
+    # 첫 번째 메시지일 경우 카운트다운 시작
+    if topic not in countdown_timers:
+        countdown_timers[topic] = threading.Timer(60.0, upload_to_s3, args=[topic])
+        countdown_timers[topic].start()
 
-            # S3에 Parquet 파일 업로드
-            timestamp = time.strftime("%Y-%m-%d_%H-%M")  # 초까지 포함한 타임스탬프 생성
+    # 메시지가 추가될 때마다 타이머를 새로 시작해서 60초 후에 업로드
+    countdown_timers[topic].cancel()
+    countdown_timers[topic] = threading.Timer(60.0, upload_to_s3, args=[topic])
+    countdown_timers[topic].start()
 
-            s3.put_object(
-                Bucket='t1-tu-data',
-                Key=f'{message.topic}/{timestamp}.parquet',
-                Body=buffer
-            )
+    # 메시지 수가 100개 이상이면 각 토픽으로 S3에 업로드
+    if topic_message_count[topic] >= 100:
+        upload_to_s3(topic)
 
-            print(f'로그가 S3에 업로드되었습니다: {message.topic}/{timestamp}.parquet')
+# S3에 업로드하는 함수
+def upload_to_s3(topic):
+    # 업로드할 메시지를 가져오기
+    log_messages = topics_data[topic]
 
-            # 배치 후 초기화
-            log_messages = []
-            start_time = time.time()  # 시간 초기화
+    # DataFrame으로 변환
+    df = pd.json_normalize(log_messages)
 
-        consumer.commit()  # 메시지를 처리한 후 수동으로 커밋
+    # DataFrame을 Parquet 형식으로 변환
+    table = pa.Table.from_pandas(df)
 
-        # 잠시 대기 (소비가 너무 빠르지 않게)
-        time.sleep(0.5)
+    # 메모리 버퍼에 Parquet 파일을 저장
+    buffer = BytesIO()
+    pq.write_table(table, buffer)
+    buffer.seek(0)  # 버퍼의 처음으로 이동
+
+    # 현재 시간을 기준으로 타임스탬프 생성
+    kst_time = datetime.utcnow() + timedelta(hours=9)
+    timestamp = kst_time.strftime("%Y-%m-%d_%H-%M")  # 분 포함한 타임스탬프 생성
+
+    # S3 업로드
+    s3.put_object(
+        Bucket='t1-tu-data',
+        Key=f'logs/{topic}/{timestamp}.parquet',  # 각 토픽별로 경로를 다르게 설정
+        Body=buffer
+    )
+
+    # 업로드 후 초기화
+    logger = logging.getLogger()
+    logger.info(f'🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢🐉 로그가 S3에 업로드되었습니다: logs/{topic}/{timestamp}.parquet 🐉🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢')
+
+    # 업로드한 메시지와 카운트 초기화
+    topics_data[topic] = []  # 메시지 초기화
+    topic_message_count[topic] = 0  # 메시지 수 초기화
+    countdown_timers[topic].cancel()  # 타이머 초기화
+
+# 메시지 수신 및 처리 시작
+for message in consumer:
+    consume_message(message)
 
 if __name__ == '__main__':
-    consume_and_save_to_s3(batch_size=100, timeout=10)
-
