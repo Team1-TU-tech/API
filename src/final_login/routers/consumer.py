@@ -46,9 +46,13 @@ countdown_timers = {}
 
 # 토픽별 메시지 수
 topic_message_count = {}
+total_message_count = 0  # 모든 토픽의 메시지 합산 카운트
 
 # 메시지를 수신하고 처리하는 함수
 def consume_message(message):
+
+    global total_message_count
+
     topic = message.topic
     log_message = message.value
 
@@ -60,25 +64,42 @@ def consume_message(message):
     # 새로운 메시지를 쌓는다
     topics_data[topic].append(log_message)
     topic_message_count[topic] += 1  # 메시지 수 카운트
-
+    total_message_count += 1  # 전체 메시지 수 카운트 증가
+    
     # 첫 번째 메시지일 경우 카운트다운 시작
-    if topic not in countdown_timers:
-        countdown_timers[topic] = threading.Timer(60.0, upload_to_s3, args=[topic])
+    if topic not in countdown_timers or not countdown_timers[topic].is_alive():
+        countdown_timers[topic] = threading.Timer(3600.0, upload_to_s3, args=[topic])
         countdown_timers[topic].start()
 
-    # 메시지가 추가될 때마다 타이머를 새로 시작해서 60초 후에 업로드
-    countdown_timers[topic].cancel()
-    countdown_timers[topic] = threading.Timer(60.0, upload_to_s3, args=[topic])
-    countdown_timers[topic].start()
+    # # 메시지가 추가될 때마다 타이머를 새로 시작해서 60초 후에 업로드
+    # countdown_timers[topic].cancel()
+    # countdown_timers[topic] = threading.Timer(60.0, upload_to_s3, args=[topic])
+    # countdown_timers[topic].start()
 
-    # 메시지 수가 100개 이상이면 각 토픽으로 S3에 업로드
-    if topic_message_count[topic] >= 100:
-        upload_to_s3(topic)
+    # 메시지 수가 1000개 이상이면 각 토픽으로 S3에 업로드
+    if total_message_count >= 1000:
+        upload_all_to_s3()
 
+
+# S3에 업로드하는 함수 (모든 토픽에 대해 업로드)
+def upload_all_to_s3():
+    global total_message_count
+
+    for topic, log_messages in topics_data.items():
+        if log_messages:  # 메시지가 있을 때만 업로드
+            upload_to_s3(topic)
+
+    # 모든 토픽 업로드 후 전체 메시지 수 초기화
+    total_message_count = 0
+
+    
 # S3에 업로드하는 함수
 def upload_to_s3(topic):
+    global total_message_count
+
     # 업로드할 메시지를 가져오기
     log_messages = topics_data[topic]
+    num_messages = len(log_messages)  # 업로드한 메시지 수
 
     # DataFrame으로 변환
     df = pd.json_normalize(log_messages)
@@ -104,12 +125,17 @@ def upload_to_s3(topic):
 
     # 업로드 후 초기화
     logger = logging.getLogger()
-    logger.info(f'🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢🐉 로그가 S3에 업로드되었습니다: logs/{topic}/{timestamp}.parquet 🐉🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢')
+    logger.info(f'🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢 로그가 S3에 업로드되었습니다: logs/{topic}/{timestamp}.parquet 🐢🐢🐢🐢🐢🐢🐢🐢🐢🐢')
 
     # 업로드한 메시지와 카운트 초기화
     topics_data[topic] = []  # 메시지 초기화
     topic_message_count[topic] = 0  # 메시지 수 초기화
-    countdown_timers[topic].cancel()  # 타이머 초기화
+    
+    total_message_count -= num_messages # 이미 처리된 메세지가 합산 기준에 포함되어 중복 업로드가 이루어지지 않게끔끔
+
+    if topic in countdown_timers:
+        countdown_timers[topic].cancel()  # 타이머 초기화
+        del countdown_timers[topic]
 
 # 메시지 수신 및 처리 시작
 for message in consumer:
