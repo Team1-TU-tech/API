@@ -66,11 +66,16 @@ async def get_token(request: Request, code: str):
                 "user_id": user_id,
                 "nickname": nickname,
                 "email": email,
-                "created_at": create_at
+                "created_at": create_at,
+                "user_type" : 0 # 일반 사용자는 0, 관리자는 1
             }
             await kakao_collection.insert_one(new_user)
+            user_type : 0  # 카카오 가입한 유저는 모두 일반 사용자
+
         else:
             print(f"[DEBUG] User already exists in DB: {user}")
+            nickname = user.get("nickname", "Unknown")
+            user_type = user.get("user_type", 0)
 
         # Step 4: 로그 기록
         device = request.headers.get("User-Agent", "Unknown")
@@ -86,9 +91,13 @@ async def get_token(request: Request, code: str):
         except Exception as e:
             print(f"Failed to log login event: {str(e)}")
 
-        # Step 5: Access Token 반환
-        return JSONResponse(content={"access_token": access_token})
-
+        # Step 5: Access Token, 유저 아이디, 관리자 여부 반환
+        return JSONResponse(content={
+            "access_token": access_token,
+            "nickname": nickname,
+            "user_type": user_type
+        })
+    
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
 

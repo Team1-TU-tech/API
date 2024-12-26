@@ -12,6 +12,12 @@ router = APIRouter()
 
 @router.post("/login", response_model=TokenResponse)
 async def login(request: Request, user: User = Depends(validate_user)):
+
+    # user는 validate_user에서 반환된 stored_user 데이터
+    user_id = user["id"]
+    username = user.get("username", "Unknown")
+    user_type = user.get("user_type", 0)
+
     # 토큰 생성
     data = {"id": str(user["id"])}
     expires_delta = timedelta(minutes=30)
@@ -46,6 +52,8 @@ async def login(request: Request, user: User = Depends(validate_user)):
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer", 
+        "username": username,
+        "user_type": user_type
     }
 
 
