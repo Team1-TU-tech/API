@@ -1,4 +1,4 @@
-# AUTH BACKEND FIN
+# Auth Backend finish
 
 auth 백엔드 구현 완료 (로그인, 로그아웃, 아이디 중복체크 , 회원가입)
 
