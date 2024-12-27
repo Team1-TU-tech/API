@@ -21,7 +21,14 @@ def get_exclusive_sales(site_id: int = None):
         current_date = datetime.datetime.now().strftime("%Y.%m.%d")
 
         # MongoDB에서 데이터 필터링
-        query = {"hosts": {"$size": 1}, "end_date": {"$gt": current_date}}
+        #query = {"hosts": {"$size": 1}, "end_date": {"$gt": current_date}}
+        query = {
+            "$and": [
+                {"end_date": {"$gt": current_date}},
+                {"$expr": {"$eq": [{"$size": "$hosts"}, 1]}}
+            ]
+        }
+
         # MongoDB에서 데이터 필터링
         if site_id is not None:
             query["hosts"] = {"$elemMatch": {"site_id": site_id}}
