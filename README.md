@@ -45,11 +45,11 @@
 - 로그인/로그아웃 시 로그 생성 후 Kafka를 통해 S3에 업로드
 ### sign_up
 - check-id: 사용자 ID 중복 여부를 MongoDB에서 조회
-- signup: 사용자 정보를 검증하고 MongoDB에서 ID 중복 여부를 최종 확인한 뒤, 사용자 정보를 MongoDB에 저장.
+- signup: 사용자 정보를 검증하고 MongoDB에서 ID 중복 여부를 최종 확인한 뒤, 사용자 정보를 MongoDB에 저장
 - 각 과정에서 발생하는 성공 또는 실패와 관련된 로그를 생성하여 Kafka를 통해 S3에 업로드
 ### kakao
 - **카카오 API**를 사용하여 로그인, 로그아웃 및 사용자 정보를 관리
-    - 로그인: 카카오 OAuth를 통해 사용자 인증 후 `Access Token`을 발급받고, MongoDB에 사용자 정보를 저장.
+    - 로그인: 카카오 OAuth를 통해 사용자 인증 후 `Access Token`을 발급받고, MongoDB에 사용자 정보를 저장
     - 로그아웃: 카카오 로그아웃 API를 호출하여 사용자 세션을 종료
  - 로그인/로그아웃 시 로그 생성 후 Kafka를 통해 S3에 업로드
 ### recommendation
