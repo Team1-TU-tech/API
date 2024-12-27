@@ -16,11 +16,11 @@ Kafka를 활용하여 백엔드 로그 데이터를 S3에 효율적으로 업로
 - search : 공연 제목, 카테고리, 날짜, 아티스트 이름, 지역으로 공연 정보 검색
 - detail : MongoDB에 저장된 공연 정보를 `id` 기준으로 조회
 - banner : 현재 날짜를 제외한 가장 가까운 공연 11개를 추출하여 메인 화면 배너에 표시
-- top_show : 로그 데이터를 분석하여 가장 많이 클릭된 공연 상위 8개를 추출
+- popular : 로그 데이터를 분석하여 가장 많이 클릭된 공연 상위 8개 추출
 - this_weekend : 현재 날짜를 기준으로 이번 주말에 볼 수 있는 공연 추출
 - recommendation : ML 모델을 활용하여 description 분석 후 id에 해당하는 공연과 유사도가 가장 높은 3개 공연 추출
-- exclusive
-- popular
+- exclusive_main : 단독 판매되는 공연을 예매처별로 4개씩 추출
+- exclusive_all :  예매처별 단독 판매되는 공연 전체 조회
 
 ### 3. Kafka Consumer 
 토픽 별로 메시지를 처리하고, 조건에 따라 S3에 데이터를 업로드하도록 로직 수정
