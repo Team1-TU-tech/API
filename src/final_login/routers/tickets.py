@@ -66,7 +66,7 @@ async def search_tickets(
     
     today = datetime.now().strftime("%Y.%m.%d")
 
-    query = {"end_date":{"$gte":today}}
+    query = {}
    
     # 카테고리 매핑 적용
     if category:
