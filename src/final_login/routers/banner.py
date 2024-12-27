@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Optional
-from bson import ObjectId
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime

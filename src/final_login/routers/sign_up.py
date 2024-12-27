@@ -1,10 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, HTTPException
 from src.final_login.db_model import UserSignUp, IDCheck, user_collection
-from fastapi import HTTPException
 import uuid
 from datetime import datetime, timedelta
 from src.final_login.log_handler import log_event
-from fastapi import Request
 from pymongo.errors import PyMongoError
 
 router = APIRouter()

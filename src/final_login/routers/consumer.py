@@ -4,12 +4,11 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import boto3
-import os, time
+import os
 from io import BytesIO
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import logging
-from collections import defaultdict
 import threading
 
 # 로깅 설정
@@ -78,6 +77,7 @@ def consume_message(message):
 
     # 메시지 수가 1000개 이상이면 각 토픽으로 S3에 업로드
     if total_message_count >= 1000:
+        logger.info("🔑🔑🔑1000개의 로그가 쌓여서 업로드를 시작합니다.🔑🔑🔑")
         upload_all_to_s3()
 
 

@@ -1,5 +1,4 @@
-from fastapi import FastAPI, APIRouter
-from pymongo import MongoClient
+from fastapi import APIRouter
 from datetime import datetime, timedelta
 from typing import List, Dict
 from motor.motor_asyncio import AsyncIOMotorClient

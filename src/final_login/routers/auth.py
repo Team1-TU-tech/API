@@ -1,10 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from datetime import timedelta
 from src.final_login.db_model import User, TokenResponse
-from src.final_login.token import SECRET_KEY, ALGORITHM
-from fastapi import Depends, Request
-from src.final_login.validate import validate_user, verify_token
-from src.final_login.token import create_access_token, create_refresh_token
+from src.final_login.validate import SECRET_KEY, ALGORITHM, validate_user, verify_token, create_access_token, create_refresh_token
 from src.final_login.log_handler import log_event
 from jose import JWTError, ExpiredSignatureError
 

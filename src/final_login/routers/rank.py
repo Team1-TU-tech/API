@@ -1,9 +1,8 @@
-from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter
 from pymongo import MongoClient
 from bson import ObjectId
 from pydantic import BaseModel
-from typing import List, Optional
-import datetime
+from typing import List
 from dotenv import load_dotenv
 import os
 

@@ -1,6 +1,4 @@
-import pytz
 from fastapi import APIRouter, Query, HTTPException, Request
-from fastapi.security import OAuth2PasswordBearer
 from typing import List, Optional
 from bson import ObjectId
 from pydantic import BaseModel
@@ -8,7 +6,6 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 from src.final_login.log_handler import *
 import os
-import certifi
 from dotenv import load_dotenv
 
 load_dotenv()  # .env 파일에서 변수 로드

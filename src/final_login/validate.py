@@ -7,11 +7,26 @@ from src.final_login.db_model import user_collection, User
 from fastapi import Request
 from src.final_login.log_handler import log_event
 from datetime import datetime, timedelta
-from src.final_login.token import create_access_token
+
 load_dotenv()
+
 
 SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
+
+def create_access_token(data: Dict[str, str], expires_delta: timedelta, SECRET_KEY, algorithm=ALGORITHM) -> str:
+    """ Access Token 생성 """
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def create_refresh_token(data: Dict[str, str], expires_delta: timedelta) -> str:
+    """ Refresh Token 생성 """
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 # access token 재발급 함수
 def refresh_access_token(refresh_token: str, SECRET_KEY: str, ALGORITHM: str, expires_delta: timedelta):
@@ -46,17 +61,6 @@ def verify_token(token: str, SECRET_KEY: str, ALGORITHM: str, refresh_token: str
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
     
-"""
-예를 들어 다음과 같이 사용
-
-# 보호된 엔드포인트
-@auth_router.get("/protected-resource", response_model=Dict[str, str])
-async def protected_resource(decoded_token: Dict[str, str] = Depends(verify_token)):
-    # 인증된 사용자만 접근 가능
-    return {"message": "This is a protected resource.", "user": decoded_token}
-"""
-
-
 async def validate_user(request: Request, user: User):
     stored_user = await user_collection.find_one({"id": user.id})
     if not stored_user or stored_user["password"] != user.password:

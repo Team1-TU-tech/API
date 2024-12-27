@@ -1,5 +1,4 @@
-from fastapi import FastAPI, HTTPException, APIRouter
-from pydantic import BaseModel
+from fastapi import HTTPException, APIRouter
 from bson import ObjectId
 from typing import List
 from dotenv import load_dotenv
