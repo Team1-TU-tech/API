@@ -17,7 +17,10 @@ app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 
 # CORS 설정
-origins = [f"http://{API_APP_HOST}:81"]
+origins = [f"http://www.ticket-moa.net", "http://3.35.53.35"]
+#origins = [f"http://{API_APP_HOST}"]
+#origins = [f"http://3.35.53.35"]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
