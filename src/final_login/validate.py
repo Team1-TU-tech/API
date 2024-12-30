@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 
 load_dotenv()
 
-
 SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
