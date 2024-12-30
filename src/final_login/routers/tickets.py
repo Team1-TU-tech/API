@@ -7,7 +7,7 @@ from datetime import datetime
 from src.final_login.log_handler import *
 import os
 from dotenv import load_dotenv
-from validate import *
+from src.final_login.validate import *
 
 load_dotenv()  # .env 파일에서 변수 로드
 
