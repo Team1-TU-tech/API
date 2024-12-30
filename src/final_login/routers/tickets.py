@@ -7,6 +7,7 @@ from datetime import datetime
 from src.final_login.log_handler import *
 import os
 from dotenv import load_dotenv
+from validate import *
 
 load_dotenv()  # .env 파일에서 변수 로드
 
@@ -58,9 +59,41 @@ async def search_tickets(
     #body = await request.json()
     device = request.headers.get("User-Agent", "Unknown")
     user_id = request.headers.get("id", "anonymous")
+    token = request.headers.get("Authorization")
     #user_id = body.get("id", "anonymous")
     ###############################################
-    
+
+
+
+    if token:
+    # JWT 토큰 디코드
+        try:
+            decoded_token = verify_token(
+                token=token,
+                SECRET_KEY=SECRET_KEY,
+                ALGORITHM=ALGORITHM,
+                refresh_token=None,
+                expires_delta=None
+            )
+            user_id = decoded_token.get("id", "anonymous")
+
+            # 로그인한 경우 추가 정보 가져오기
+            user_info = await user_collection.find_one({"id": user_id})
+            if user_info:
+                gender = user_info.get("gender")
+                birthday = user_info.get("birthday")
+            else:
+                print(f"User not found for user_id: {user_id}")
+        except JWTError as e:
+            print(f"Token verification failed: {str(e)}")
+            raise HTTPException(status_code=401, detail="Invalid token.")
+    else:
+        print("No token provided. Proceeding as anonymous user.")
+
+
+
+
+
     today = datetime.now().strftime("%Y.%m.%d")
 
     query = {}
@@ -156,7 +189,41 @@ async def get_detail_by_id(request: Request, id: str):
     device = request.headers.get("User-Agent", "Unknown")
     #user_id = body.get("id", "anonymous")
     user_id = request.headers.get("id", "anonymous")
+    token = request.headers.get("Authorization")
     ###############################################
+
+
+
+    if token:
+    # JWT 토큰 디코드
+        try:
+            decoded_token = verify_token(
+                token=token,
+                SECRET_KEY=SECRET_KEY,
+                ALGORITHM=ALGORITHM,
+                refresh_token=None,
+                expires_delta=None
+            )
+            user_id = decoded_token.get("id", "anonymous")
+
+            # 로그인한 경우 추가 정보 가져오기
+            user_info = await user_collection.find_one({"id": user_id})
+            if user_info:
+                gender = user_info.get("gender")
+                birthday = user_info.get("birthday")
+            else:
+                print(f"User not found for user_id: {user_id}")
+        except JWTError as e:
+            print(f"Token verification failed: {str(e)}")
+            raise HTTPException(status_code=401, detail="Invalid token.")
+    else:
+        print("No token provided. Proceeding as anonymous user.")
+
+
+
+
+
+
 
     try:
         object_id = ObjectId(id)
