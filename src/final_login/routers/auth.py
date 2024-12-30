@@ -47,7 +47,7 @@ async def login(request: Request, user: User = Depends(validate_user)):
         "refresh_token": refresh_token,
         "token_type": "bearer", 
         "username": username,
-        "user_type": user_type
+        "user_type": str(user_type)
     }
 
 @router.post("/logout")
