@@ -149,7 +149,7 @@ async def get_token(request: Request, code: str):
         try:
             log_event(
                 user_id=user_id,
-                email=email if email not in [None, ""] else "None",
+                email=email,
                 device=device,
                 action="Kakao Login",
                 topic="KakaoLogin_log",
@@ -204,7 +204,7 @@ async def logout(request: Request, authorization: str = Header(None)):
             # 로그 이벤트 기록
             log_event(
                 user_id=user_id,
-                user_email=email if email not in [None, ""] else "None",
+                user_email=email,
                 device=device,
                 action="Kakao Logout",
                 topic="KakaoLogout_log",

@@ -67,9 +67,11 @@ async def search_tickets(
    
     # 카테고리 매핑 적용
     if category:
-        categories = category.split("/")
-        categories.append(category)  # 원래 카테고리도 포함
-        query["category"] = {"$in": categories}
+            categories = category.split("/")
+            categories.append(category)  # 원래 카테고리도 포함
+            query["category"] = {"$in": categories}
+    else:
+        category = "전체"
 
     if start_date:
         start_date = parse_date(start_date)
@@ -83,12 +85,16 @@ async def search_tickets(
 
     if region:
         query["region"] = region
+    else:
+        region = "전국"
 
     if keyword:
         query["$or"] = [
                 {"title": {"$regex": keyword, "$options": "i"}},
                 {"artist.artist_name": {"$regex": keyword, "$options": "i"}}
                 ]
+    else:
+        keyword = "전체"
 
     cursor = collection.find(query)
     print(f"MongoDB Query: {query}")
@@ -130,9 +136,9 @@ async def search_tickets(
             device=device,     # 디바이스 정보 (User-Agent 또는 쿼리 파라미터)
             action="search",   # 액션 종류: 'Search'
             topic="Search_log", #카프카 토픽 구별을 위한 컬럼
-            category=category if category is not None else "None", # 카테고리
-            region=region if region is not None else "None",
-            keyword=keyword if keyword is not None else "None"
+            category=category if category not in [None, ""] else None, # 카테고리
+            region=region if region not in [None, ""] else None,
+            keyword=keyword if keyword not in [None, ""] else None
             
     )
         print("Log event should have been recorded.")
@@ -165,9 +171,9 @@ async def get_detail_by_id(request: Request, id: str):
                 action="view_detail",   # 액션 종류: 'view_detail' (상세 조회)
                 topic="View_detail_log", #카프카 토픽 구별을 위한 컬럼
                 ticket_id= result['_id'],
-                title= result['title'],
-                category=result['category'] if result['category'] is not None else "None", # 카테고리
-                region=result['region'] if result['region'] is not None else "None",     # 지역
+                title= result['title'] if result['title'] not in [None, ""] else None,
+                category=result['category'] if result['category'] not in [None, ""] else None, # 카테고리
+                region=result['region'] if result['region'] not in [None, ""] else None    # 지역
                 )
             
             return {"data": result}

@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import datetime
