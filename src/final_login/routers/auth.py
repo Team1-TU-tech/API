@@ -26,9 +26,7 @@ async def login(request: Request, user: User = Depends(validate_user)):
     create_at = user.get("create_at")
     username = user.get("username", "Unknown")
     user_type = user.get("user_type", 0)
-
-    print(f"Stored user: {username}")
-
+    
     try:
         # 로그 이벤트 기록
         log_event(
@@ -51,13 +49,6 @@ async def login(request: Request, user: User = Depends(validate_user)):
         "username": username,
         "user_type": user_type
     }
-
-
-# 로그아웃할 때 프론트엔드에서 토큰 삭제를 명시적으로 처리해야 함
-"""
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-"""
 
 @router.post("/logout")
 async def logout(request: Request):
