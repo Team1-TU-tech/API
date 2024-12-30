@@ -62,9 +62,7 @@ async def search_tickets(
     token = request.headers.get("Authorization")
     #user_id = body.get("id", "anonymous")
     ###############################################
-
-
-
+    
     if token:
     # JWT 토큰 디코드
         try:
@@ -89,10 +87,6 @@ async def search_tickets(
             raise HTTPException(status_code=401, detail="Invalid token.")
     else:
         print("No token provided. Proceeding as anonymous user.")
-
-
-
-
 
     today = datetime.now().strftime("%Y.%m.%d")
 
@@ -192,8 +186,6 @@ async def get_detail_by_id(request: Request, id: str):
     token = request.headers.get("Authorization")
     ###############################################
 
-
-
     if token:
     # JWT 토큰 디코드
         try:
@@ -219,12 +211,7 @@ async def get_detail_by_id(request: Request, id: str):
     else:
         print("No token provided. Proceeding as anonymous user.")
 
-
-
-
-
-
-
+    
     try:
         object_id = ObjectId(id)
         result = await collection.find_one({"_id": object_id})
