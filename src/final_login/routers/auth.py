@@ -27,6 +27,8 @@ async def login(request: Request, user: User = Depends(validate_user)):
     username = user.get("username", "Unknown")
     user_type = user.get("user_type", 0)
 
+    print(f"Stored user: {username}")
+
     try:
         # 로그 이벤트 기록
         log_event(
