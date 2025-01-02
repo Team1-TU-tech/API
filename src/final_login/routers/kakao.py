@@ -94,6 +94,7 @@ def get_kakao_code(request: Request):
 async def kakao_callback(request: Request, code: str):
     # 원하는 URL로 리다이렉트하면서 인가 코드 포함
     redirect_url = f"http://{API_APP_HOST}/callback?code={code}"
+    #redirect_url = f"http://www.ticket-moa.net/callback?code={code}"
     return RedirectResponse(url=redirect_url)
 
 @router.get("/getToken")
@@ -188,7 +189,7 @@ async def logout(request: Request, authorization: str = Header(None)):
         client_id = kakao_api.client_id
         logout_redirect_uri = kakao_api.logout_redirect_uri
         logout_url = await kakao_api.logout(client_id, logout_redirect_uri)
-        
+      
         # 애플리케이션 내 세션에서 토큰 삭제
         request.session.pop('access_token', None)
 
