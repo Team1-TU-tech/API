@@ -8,6 +8,7 @@ from src.final_login.log_handler import *
 import os
 from dotenv import load_dotenv
 from src.final_login.validate import *
+from src.final_login.routers.kakao import *
 
 load_dotenv()  # .env 파일에서 변수 로드
 
@@ -62,31 +63,55 @@ async def search_tickets(
     token = request.headers.get("Authorization")
     #user_id = body.get("id", "anonymous")
     ###############################################
-    
-    if token:
-    # JWT 토큰 디코드
-        try:
-            decoded_token = verify_token(
-                token=token,
-                SECRET_KEY=SECRET_KEY,
-                ALGORITHM=ALGORITHM,
-                refresh_token=None,
-                expires_delta=None
-            )
-            user_id = decoded_token.get("id", "anonymous")
 
-            # 로그인한 경우 추가 정보 가져오기
-            user_info = await user_collection.find_one({"id": user_id})
-            if user_info:
-                gender = user_info.get("gender")
-                birthday = user_info.get("birthday")
+    user_id = "anonymous"  # 기본값 설정
+    gender = None  # 기본값
+    birthday = None  # 기본값
+    email = None # 기본값
+
+    if token:
+        try:
+            # JWT 형식인지 확인
+            if "." in token and len(token.split(".")) == 3:
+                # JWT 디코딩 로직
+                try:
+                    decoded_token = verify_token(
+                        token=token,
+                        SECRET_KEY=SECRET_KEY,
+                        ALGORITHM=ALGORITHM,
+                        refresh_token=None,
+                        expires_delta=None
+                    )
+                    user_id = decoded_token.get("id", "anonymous")
+                    user_info = await user_collection.find_one({"id": user_id})
+                    if user_info:
+                        gender = user_info.get("gender", None)
+                        birthday = user_info.get("birthday", None)
+                        email = user_info.get("email", None)
+                except JWTError as e:
+                    raise HTTPException(status_code=401, detail="Invalid JWT token.")
             else:
-                print(f"User not found for user_id: {user_id}")
-        except JWTError as e:
-            print(f"Token verification failed: {str(e)}")
-            raise HTTPException(status_code=401, detail="Invalid token.")
+                # Step 1: Kakao API를 사용하여 사용자 정보 가져오기
+                user_info = kakao_api.get_kakao_user_info(token)  # `token`이 access_token으로 전달됨
+                #print("[DEBUG] User info fetched from Kakao API:", user_info)
+                
+                user_id = user_info["id"]
+                email = user_info.get("kakao_account", {}).get("email", None)
+                
+                # Step 2: MongoDB에서 user_id 조회
+                user = await kakao_collection.find_one({"user_id": user_id})  # MongoDB에서 user_id 조회
+                
+                if user:
+                    gender = user.get("gender", None)
+                    birthday = user.get("birthday", None)
+                    email = user.get("email", None)
+                else:
+                    raise HTTPException(status_code=401, detail="User not found in Kakao collection")
+                
+        except HTTPException as e:
+            raise HTTPException(status_code=401, detail="Token verification failed.")
     else:
-        print("No token provided. Proceeding as anonymous user.")
+        user_id = "anonymous"  # 기본값 설정
 
     today = datetime.now().strftime("%Y.%m.%d")
 
@@ -163,11 +188,14 @@ async def search_tickets(
             device=device,     # 디바이스 정보 (User-Agent 또는 쿼리 파라미터)
             action="search",   # 액션 종류: 'Search'
             topic="Search_log", #카프카 토픽 구별을 위한 컬럼
-            category=category if category not in [None, ""] else None, # 카테고리
+            category=category if category not in [None, ""] else None,  # 카테고리
             region=region if region not in [None, ""] else None,
-            keyword=keyword if keyword not in [None, ""] else None
-            
-    )
+            keyword=keyword if keyword not in [None, ""] else None,
+            gender=gender if gender not in [None, ""] else None,
+            birthday=birthday if birthday not in [None, ""] else None,
+            email=email if email not in [None, ""] else None,
+        )     
+    
         print("Log event should have been recorded.")
     except Exception as e:
         print(f"Error logging event: {e}")
@@ -186,32 +214,54 @@ async def get_detail_by_id(request: Request, id: str):
     token = request.headers.get("Authorization")
     ###############################################
 
+    user_id = "anonymous"  # 기본값 설정
+    gender = None  # 기본값
+    birthday = None  # 기본값
+    email = None # 기본값
+
     if token:
-    # JWT 토큰 디코드
         try:
-            decoded_token = verify_token(
-                token=token,
-                SECRET_KEY=SECRET_KEY,
-                ALGORITHM=ALGORITHM,
-                refresh_token=None,
-                expires_delta=None
-            )
-            user_id = decoded_token.get("id", "anonymous")
-
-            # 로그인한 경우 추가 정보 가져오기
-            user_info = await user_collection.find_one({"id": user_id})
-            if user_info:
-                gender = user_info.get("gender")
-                birthday = user_info.get("birthday")
+            # JWT 형식인지 확인
+            if "." in token and len(token.split(".")) == 3:
+                # JWT 디코딩 로직
+                try:
+                    decoded_token = verify_token(
+                        token=token,
+                        SECRET_KEY=SECRET_KEY,
+                        ALGORITHM=ALGORITHM,
+                        refresh_token=None,
+                        expires_delta=None
+                    )
+                    user_id = decoded_token.get("id", "anonymous")
+                    user_info = await user_collection.find_one({"id": user_id})
+                    if user_info:
+                        gender = user_info.get("gender", None)
+                        birthday = user_info.get("birthday", None)
+                        email = user_info.get("email", None)
+                except JWTError as e:
+                    raise HTTPException(status_code=401, detail="Invalid JWT token.")
             else:
-                print(f"User not found for user_id: {user_id}")
-        except JWTError as e:
-            print(f"Token verification failed: {str(e)}")
-            raise HTTPException(status_code=401, detail="Invalid token.")
+                # Step 1: Kakao API를 사용하여 사용자 정보 가져오기
+                user_info = kakao_api.get_kakao_user_info(token)  # `token`이 access_token으로 전달됨
+                #print("[DEBUG] User info fetched from Kakao API:", user_info)
+                
+                user_id = user_info["id"]
+                email = user_info.get("kakao_account", {}).get("email", None)
+                # Step 2: MongoDB에서 user_id 조회
+                user = await kakao_collection.find_one({"user_id": user_id})  # MongoDB에서 user_id 조회
+                
+                if user:
+                    gender = user.get("gender", None)
+                    birthday = user.get("birthday", None)
+                    email = user.get("email", None)
+                else:
+                    raise HTTPException(status_code=401, detail="User not found in Kakao collection")
+                
+        except HTTPException as e:
+            raise HTTPException(status_code=401, detail="Token verification failed.")
     else:
-        print("No token provided. Proceeding as anonymous user.")
+        user_id = "anonymous"  # 기본값 설정
 
-    
     try:
         object_id = ObjectId(id)
         result = await collection.find_one({"_id": object_id})
@@ -226,9 +276,10 @@ async def get_detail_by_id(request: Request, id: str):
                 topic="View_detail_log", #카프카 토픽 구별을 위한 컬럼
                 ticket_id= result['_id'],
                 title= result['title'] if result['title'] not in [None, ""] else None,
-                category=result['category'] if result['category'] not in [None, ""] else None, # 카테고리
-                region=result['region'] if result['region'] not in [None, ""] else None    # 지역
-                )
+                gender=gender if gender not in [None, ""] else None,
+                birthday=birthday if birthday not in [None, ""] else None,
+                email=email if email not in [None, ""] else None,
+        )   
             
             return {"data": result}
         else:
