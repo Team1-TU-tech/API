@@ -166,8 +166,11 @@ async def search_tickets(
             else:
                 on_sale = False
         except (ValueError, TypeError) as e:
-            print(f"Error parsing end_date: {e}")
-            on_sale = False  # end_date 형식 오류시 on_sale은 False
+            if ticket_url and isinstance(end_date_str, str) and end_date_str == "상시공연":
+                on_sale = True
+            else:
+                print(f"Error parsing end_date: {e}")
+                on_sale = False  # end_date 형식 오류시 on_sale은 False
 
         ticket_data = {
             "id": str(ticket.get("_id")),
