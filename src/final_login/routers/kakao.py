@@ -205,7 +205,7 @@ async def logout(request: Request, authorization: str = Header(None)):
             # 로그 이벤트 기록
             log_event(
                 user_id=user_id,
-                user_email=email,
+                email=email,
                 device=device,
                 action="Kakao Logout",
                 topic="KakaoLogout_log",
