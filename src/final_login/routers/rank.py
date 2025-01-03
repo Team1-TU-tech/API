@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 from pydantic import BaseModel
 from typing import List
+import datetime
 from dotenv import load_dotenv
 import os
 
@@ -29,14 +30,23 @@ class TicketData(BaseModel):
 @router.get("/popular", response_model=List[TicketData])
 async def get_popular_data():
     try:
-        # tut_popular 데이터 가져오기 (count 기준 내림차순 정렬 후 상위 8개 선택)
-        popular_docs = list(popular_collection.find({}, {"ticket_id": 1, "count": 1}).sort("count", -1).limit(8))
+        # 오늘 날짜 가져오기
+        today = datetime.datetime.now().strftime("%Y.%m.%d")
+
+        # end_date가 오늘 이후인 데이터 중 count 기준 내림차순 상위 8개 가져오기
+        popular_docs = list(
+            popular_collection.find(
+                {},
+                {"ticket_id": 1, "count": 1}
+            ).sort("count", -1)
+        )
 
         # ticket_id 리스트 추출
         ticket_ids = [ObjectId(doc["ticket_id"]) for doc in popular_docs if "ticket_id" in doc]
-        
-        # 티켓 데이터를 한 번에 가져오기
-        tickets = list(collection.find({"_id": {"$in": ticket_ids}}))
+
+        # ticket_id에 해당하는 상세 데이터를 data 컬렉션에서 가져오기
+        tickets = list(collection.find({"_id": {"$in": ticket_ids}, "end_date": {"$gte": today}}).limit(8)
+        )
 
         # Pydantic 모델로 변환
         popular = [
@@ -56,4 +66,3 @@ async def get_popular_data():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
-
