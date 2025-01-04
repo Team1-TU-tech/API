@@ -3,12 +3,9 @@ from src.final_login.routers import tickets, banner, weekend, rank, auth, kakao,
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 import os
-from dotenv import load_dotenv
 
 app = FastAPI()
 
-load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 
