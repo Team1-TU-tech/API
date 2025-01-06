@@ -52,14 +52,16 @@ async def get_performances_this_weekend():
 
     result = []
     async for performance in performances_cursor:
-        result.append({
-            "id": str(performance["_id"]),
-            "title": performance["title"], 
-            "category": performance['category'],
-            "start_date": performance["start_date"], 
-            "end_date": performance["end_date"],
-            "poster_url": performance['poster_url'],
-            "location": performance['location']
-        })
+        if performance.get("poster_url"):
+
+            result.append({
+                "id": str(performance["_id"]),
+                "title": performance["title"], 
+                "category": performance['category'],
+                "start_date": performance["start_date"], 
+                "end_date": performance["end_date"],
+                "poster_url": performance['poster_url'],
+                "location": performance['location']
+            })
     
     return result
