@@ -43,3 +43,5 @@ class UserSignUp(BaseModel):
 class IDCheck(BaseModel):
     id: str
 
+class LikePerfId(BaseModel):
+    id: str
