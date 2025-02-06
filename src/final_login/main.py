@@ -8,12 +8,13 @@ from dotenv import load_dotenv
 app = FastAPI()
 
 load_dotenv()
+API_APP_HOST = os.getenv("API_APP_HOST", "localhost")
 SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 
 # CORS 설정
-origins = [f"http://www.ticketmoa.org", "http://54.180.135.217"]
+origins = [f"http://{API_APP_HOST}:3000", "http://localhost:3000"]
 
 app.add_middleware(
     CORSMiddleware,
