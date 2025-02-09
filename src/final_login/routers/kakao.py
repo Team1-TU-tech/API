@@ -93,7 +93,7 @@ def get_kakao_code(request: Request):
 @router.get("/callback")
 async def kakao_callback(request: Request, code: str):
     # 원하는 URL로 리다이렉트하면서 인가 코드 포함
-    redirect_url = f"http://{API_APP_HOST}/callback?code={code}"
+    redirect_url = f"http://{API_APP_HOST}:3000/callback?code={code}"
     #redirect_url = f"http://www.ticket-moa.net/callback?code={code}"
     return RedirectResponse(url=redirect_url)
 
