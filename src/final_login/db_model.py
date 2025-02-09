@@ -20,6 +20,18 @@ class User(BaseModel):
     id: str
     password: str
 
+class TicketData(BaseModel):
+    id: str
+    poster_url: Optional[str]
+    title: Optional[str]
+    location: Optional[str]
+    start_date: Optional[str]
+    end_date: Optional[str]
+    category: Optional[str]
+    isExclusive: bool
+    onSale: bool
+    like: bool
+    
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
