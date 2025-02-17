@@ -63,7 +63,7 @@ def get_all_users():
     return list(performances)
 
 
-@router.get("/like")
+@router.post("/like")
 async def click_like(request: Request, like_perf_id: LikePerfId):
     token = Request.headers.get("Authorization")
     perf_id = Request.body.get("ID")

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.final_login.routers import tickets, banner, weekend, rank, auth, kakao, sign_up, ml, exclusive_main, exclusive_all  # tickets 라우터를 포함한 모듈
+from src.final_login.routers import tickets, banner, weekend, rank, auth, kakao, sign_up, ml, exclusive_main, exclusive_all, like  # tickets 라우터를 포함한 모듈
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 import os
@@ -36,3 +36,5 @@ app.include_router(kakao.router, prefix="/kakao")
 app.include_router(ml.router)
 app.include_router(exclusive_main.router)
 app.include_router(exclusive_all.router)
+
+app.include_router(like.router)
