@@ -3,6 +3,9 @@ import pymongo import MongoClient
 from fastapi import APIRouter
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 router = APIRoute
 mongo_uri = os.getenv("MONGO_URI")
