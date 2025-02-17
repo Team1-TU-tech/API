@@ -65,9 +65,8 @@ def get_all_users():
 
 @router.post("/like")
 async def click_like(request: Request, like_perf_id: LikePerfId):
-    #token = Request.headers.get("Authorization")
-    token= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwiZXhwIjoxNzM5Nzc3NDE4fQ.ROh2-aw2SjHxMLqiMizeP64PXDp8pNEpt1NPxyf-WuI"
-    perf_id = request.headers.get("like_perf_id")
+    token = Request.headers.get("Authorization")
+    perf_id = Request.body.get("ID")
 
     if token:
         try:
@@ -114,10 +113,10 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
         user_id = "anonymous"  # 기본값 설정
 
     # DB에서 공연정보 가져오기
-    connect_perf_db = connect_perf_db()
-    performance_data = connect_perf_db.find({"_id": ObjectId(perf_id)})
+    connect_perf = connect_perf_db()
+    performance_data = connect_perf.find({"_id": ObjectId(perf_id)})
 
-    connect_like_db = connect_like_db()
+    connect_like = connect_like_db()
 
     if performance_data.get("_id"):
 
@@ -135,7 +134,7 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
         }
 
         # user_id가 이미 존재하는지 확인하고, 존재하면 해당 문서에 performance_data를 추가
-        result = connect_like_db.update_one(
+        result = connect_like.update_one(
             {"user_id": user_id},  # user_id로 문서를 찾기
             {
                 "$push": {  # performance_data를 'performances'라는 배열 필드에 추가
@@ -147,7 +146,7 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
         # 만약 user_id가 존재하지 않으면 새 문서 삽입
         if result.matched_count == 0:
             # user_id가 없으면 새로 삽입
-            connect_like_db.insert_one({
+            connect_like.insert_one({
                 "user_id": user_id,
                 "user_email": email,
                 "performances": [data_to_insert]  # 처음 삽입되는 performance_data는 배열로 추가
