@@ -51,22 +51,25 @@ def connect_users_db():
     except Exception as e:
         print(f"MongoDB connection error: {e}")
     
-def get_all_users():
+async def get_all_users():
     collection = connect_users_db()
 
     if collection is None:
         print("MongoDB 연결에 실패했습니다. 데이터를 가져올 수 없습니다.")
         return [] 
     
-    performances = collection.find({},{'id': 1, 'email': 1})
+    performances_cursor = collection.find({},{'id':1,'email': 1}).limit(100)
+    performances = await performance_cursor.to_list(None)
+
     
-    return list(performances)
+    return performances
 
 
 @router.post("/like")
 async def click_like(request: Request, like_perf_id: LikePerfId):
-    token = Request.headers.get("Authorization")
-    perf_id = Request.body.get("ID")
+    #token = request.headers.get("Authorization")
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwiZXhwIjoxNzM5NzgxNTI0fQ.6-4S4USaYrEA1qXLDyjFDRWXpStbPtqN3jheO8Rzd90"
+    perf_id = request.headers.get("like_perf_id")
 
     if token:
         try:
@@ -114,23 +117,24 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
 
     # DB에서 공연정보 가져오기
     connect_perf = connect_perf_db()
-    performance_data = connect_perf.find({"_id": ObjectId(perf_id)})
-
+    performance_data = connect_perf.find_one({"_id": ObjectId(perf_id)})
+    #performance_data = connect_perf.find_one({"_id": ObjectId()})
+    print(type(performance_data))
     connect_like = connect_like_db()
 
-    if performance_data.get("_id"):
+    if performance_data:
 
         # 필요한 필드를 포함한 데이터 준비
         data_to_insert = {
             "user_id": user_id,
             "user_email": email,
-            "id": str(performance_data["_id"]),
-            "title": performance_data["title"],
-            "start_date": performance_data["start_date"],
-            "end_date": performance_data["end_date"],
-            "poster_url": performance_data["poster_url"],
-            "location": performance_data["location"],
-            "open_date": performance_data["open_date"]
+            "id": str(performance_data),
+            #"title": performance_data["title"],
+            #"start_date": performance_data["start_date"],
+            #"end_date": performance_data["end_date"],
+            #"poster_url": performance_data["poster_url"],
+            #"location": performance_data["location"],
+            #"open_date": performance_data["open_date"]
         }
 
         # user_id가 이미 존재하는지 확인하고, 존재하면 해당 문서에 performance_data를 추가
@@ -144,13 +148,13 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
         )
 
         # 만약 user_id가 존재하지 않으면 새 문서 삽입
-        if result.matched_count == 0:
+        #if result.matched_count == 0:
             # user_id가 없으면 새로 삽입
-            connect_like.insert_one({
-                "user_id": user_id,
-                "user_email": email,
-                "performances": [data_to_insert]  # 처음 삽입되는 performance_data는 배열로 추가
-            })
+         #   connect_like.insert_one({
+         #       "user_id": user_id,
+         #       "user_email": email,
+         #       "performances": [data_to_insert]  # 처음 삽입되는 performance_data는 배열로 추가
+         #   })
 
 @router.delete("/del_like")
 async def del_like(request: Request, like_perf_id: LikePerfId):
