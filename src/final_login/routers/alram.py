@@ -40,7 +40,7 @@ def send_email(recipient, subject, body):
         msg['From'] = smtp_user
         msg['To'] = recipient
         msg['Subject'] = subject
-        msg.attach(MIMEText(body, 'plain'))
+        msg.attach(MIMEText(body, 'html'))
 
         with smtplib.SMTP(smtp_server, smtp_port) as s:
             s.starttls()
@@ -67,20 +67,30 @@ for perform in performs:
         if user_email:
             email_subject = f"🔔{title} 오픈 알림🔔"
             email_body = f"""
-            안녕하세요 {user_id}님! 
-            '{title}'이/가 내일 오픈 합니다!
+            <html>
+                <body>
+                    <h2>안녕하세요, {user_id}님!</h2>
+                    <p><strong>'{title}'</strong>이/가 내일 오픈합니다! 🎉</p>
+            
+                    <ul>
+                        <li><strong>오픈 날짜:</strong> {open_date}</li>
+                        <li><strong>공연 날짜:</strong> {start_date} ~ {end_date}</li>
+                        <li><strong>장소:</strong> {location}</li>
+                    </ul>
 
-            오픈 날짜: {open_date}
-            공연 날짜: {start_date} ~ {end_date}
-            장     소: {location}
+                    <p>아래 링크를 클릭하여 공연 상세 정보를 확인해 보세요!</p>
+                    <p>
+                        <a href="http://localhost:3000/detail/{perform_id}" 
+                        style="display:inline-block; padding:10px 20px; background:#007BFF; color:white; 
+                          text-decoration:none; border-radius:5px;">
+                        🔗 공연 상세 페이지로 이동
+                        </a>
+                    </p>
 
-            아래 링크로 사이트를 방문하여 확인해 보세요 !
-            localhost:3000/detail/{perform_id}
-
-            감사합니다.
-            Ticket Moa
+                    <p>감사합니다.<br><strong>Ticket Moa</strong></p>
+                </body>
+            </html>
             """
-
             send_email(user_email, email_subject, email_body)
            
     else:
