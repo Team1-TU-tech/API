@@ -63,10 +63,11 @@ def get_all_users():
     return list(performances)
 
 
-@router.get("/like")
+@router.post("/like")
 async def click_like(request: Request, like_perf_id: LikePerfId):
-    token = Request.headers.get("Authorization")
-    perf_id = Request.body.get("ID")
+    #token = Request.headers.get("Authorization")
+    token= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwiZXhwIjoxNzM5Nzc3NDE4fQ.ROh2-aw2SjHxMLqiMizeP64PXDp8pNEpt1NPxyf-WuI"
+    perf_id = request.headers.get("like_perf_id")
 
     if token:
         try:
