@@ -30,7 +30,7 @@ performs = collection.find({
 
 # SMTP 설정
 smtp_sever = "smtp.gmail.com"
-smtp_port = 578
+smtp_port = 587
 smtp_user = os.getenv("EMAIL_ID")
 smtp_pw = os.getenv("EMAIL_PW")
 
