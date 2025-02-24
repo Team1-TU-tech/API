@@ -69,7 +69,7 @@ async def get_all_users():
 async def click_like(request: Request, like_perf_id: LikePerfId):
     #token = request.headers.get("Authorization")
     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwiZXhwIjoxNzM5NzgxNTI0fQ.6-4S4USaYrEA1qXLDyjFDRWXpStbPtqN3jheO8Rzd90"
-    perf_id = request.headers.get("like_perf_id")
+    perf_id = like_perf_id.id  # 요청 바디에서 perf_id 가져오기
 
     if token:
         try:
@@ -117,9 +117,7 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
 
     # DB에서 공연정보 가져오기
     connect_perf = connect_perf_db()
-    performance_data = connect_perf.find_one({"_id": ObjectId(perf_id)})
-    #performance_data = connect_perf.find_one({"_id": ObjectId()})
-    print(type(performance_data))
+    performance_data = await connect_perf.find_one({"_id": ObjectId(perf_id)})
     connect_like = connect_like_db()
 
     if performance_data:
@@ -128,7 +126,7 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
         data_to_insert = {
             "user_id": user_id,
             "user_email": email,
-            "id": str(performance_data),
+            "id": str(performance_data["_id"])
             #"title": performance_data["title"],
             #"start_date": performance_data["start_date"],
             #"end_date": performance_data["end_date"],
