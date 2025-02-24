@@ -3,12 +3,10 @@ from typing import List, Optional
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from src.final_login.db_model import *
-from datetime import datetime
 from src.final_login.validate import *
 from src.final_login.routers.kakao import *
 from bson import ObjectId
 import os
-from fastapi import Body
 
 mongo_uri = os.getenv("MONGO_URI")
 router = APIRouter()
@@ -60,7 +58,7 @@ async def get_all_users():
         return [] 
     
     performances_cursor = collection.find({},{'id':1,'email': 1}).limit(100)
-    performances = await performance_cursor.to_list(None)
+    performances = await performances_cursor.to_list(None)
 
     
     return performances
@@ -71,20 +69,15 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
     #token = request.headers.get("Authorization")
     #token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwiZXhwIjoxNzQwMzczMTk0fQ.0rBAc7EaGbuP-Rs7tp8inIReruYyku344nF60Ikz38M"
     perf_id = like_perf_id.id
-    print(perf_id)
-
    
     # DB에서 공연정보 가져오기
     connect_perf = connect_perf_db()
     performance_data = await connect_perf.find_one({"_id": ObjectId(perf_id)})
     connect_like = connect_like_db()
-    print(performance_data)
+    
     if performance_data:
-        print(performance_data["_id"])
         # 필요한 필드를 포함한 데이터 준비
         data_to_insert = {
-            "user_id": "admin",
-            "user_email": "test",
             "id": str(performance_data["_id"])
             #"title": performance_data["title"],
             #"start_date": performance_data["start_date"],
@@ -94,62 +87,67 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
             #"open_date": performance_data["open_date"]
         }
 
-        # user_id가 이미 존재하는지 확인하고, 존재하면 해당 문서에 performance_data를 추가
-        result = await connect_like.update_one(
-            {"user_id": "admin"},  # user_id로 문서를 찾기
-            {
-                "$push": {  # performance_data를 'performances'라는 배열 필드에 추가
-                    "performances": data_to_insert
-                }
+        user_data = await connect_like.find_one({"user_id": "gamza"})
+        
+        if user_data:
+            # performance_data가 이미 존재하는지 확인
+            existing_performance = next((p for p in user_data["performances"] if p["id"] == str(perf_id)), None)
+            if not existing_performance:
+                # user_id가 이미 존재하는지 확인하고, 존재하면 해당 문서에 performance_data를 추가
+                result = await connect_like.update_one(
+                    {"user_id": "gamza"},  # user_id로 문서를 찾기
+                {
+                    "$push": {  # performance_data를 'performances'라는 배열 필드에 추가
+                        "performances": data_to_insert
+                    }
                 
-            },
-            upsert = True
-        )
-
-
-        # 만약 user_id가 존재하지 않으면 새 문서 삽입
-        #if result.matched_count == 0:
-            # user_id가 없으면 새로 삽입
-         #   connect_like.insert_one({
-         #       "user_id": user_id,
-         #       "user_email": email,
-         #       "performances": [data_to_insert]  # 처음 삽입되는 performance_data는 배열로 추가
-         #   })
+                },
+                upsert = True
+            )
+            else:
+                print("Performance data already exists, skipping insertion.")
+        else:
+            result = await connect_like.update_one(
+                    {"user_id": "gamza",
+                     "user_email": "test@gmail.com"},  # user_id로 문서를 찾기
+                {
+                    "$push": {  # performance_data를 'performances'라는 배열 필드에 추가
+                        "performances": data_to_insert
+                    }
+                
+                },
+                upsert = True
+            )
+    
+    return data_to_insert
 
 @router.delete("/del_like")
 async def del_like(request: Request, like_perf_id: LikePerfId):
     perf_id = like_perf_id.id
-
-    # DB에서 공연정보 가져오기
-    connect_perf = connect_perf_db()
-    performance_data = connect_perf.find_one({"_id": ObjectId(perf_id)})
-
     connect_like = connect_like_db()
-
-
+    
     # 삭제할 데이터를 검색하고 제거
-    result = connect_like.update_one(
-        {"user_id": "admin"},  # user_id로 문서를 찾음
+    result = await connect_like.update_one(
+        {"user_id": "gamza"},  # user_id로 문서를 찾음
         {
             "$pull": {  # performance_id가 일치하는 데이터를 배열에서 제거
-                "performances": {"id": ObjectId(perf_id)}
+                "performances": {"id": perf_id}
             }
         }
     )
 
+    return perf_id
 
-
-@router.get("/get_like/admin")
+@router.get("/get_like")
 async def get_like_performances(request: Request):
+    user_id = "gamza"
     # MongoDB에서 ID에 해당하는 문서 찾기
     connect_like = connect_like_db()
 
-    find_user = await connect_like.find_one({"user_id": "admin"})
+    find_user = await connect_like.find_one({"user_id": user_id})
+    if find_user:
+        return find_user.get("performances", [])
 
-    if find_user is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-
-    like_performances = user_id.get("performances", [])
-    
-    return like_performances
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
 
