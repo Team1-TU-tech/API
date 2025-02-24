@@ -78,13 +78,13 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
     if performance_data:
         # 필요한 필드를 포함한 데이터 준비
         data_to_insert = {
-            "id": str(performance_data["_id"])
+            "id": str(performance_data["_id"]),
             #"title": performance_data["title"],
             #"start_date": performance_data["start_date"],
             #"end_date": performance_data["end_date"],
             #"poster_url": performance_data["poster_url"],
             #"location": performance_data["location"],
-            #"open_date": performance_data["open_date"]
+            "open_date": performance_data["open_date"]
         }
 
         user_data = await connect_like.find_one({"user_id": "gamza"})
