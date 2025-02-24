@@ -68,7 +68,7 @@ async def get_all_users():
 @router.post("/like")
 async def click_like(request: Request, like_perf_id: LikePerfId):
     #token = request.headers.get("Authorization")
-    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwiZXhwIjoxNzM5NzgxNTI0fQ.6-4S4USaYrEA1qXLDyjFDRWXpStbPtqN3jheO8Rzd90"
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwiZXhwIjoxNzQwMzczMTk0fQ.0rBAc7EaGbuP-Rs7tp8inIReruYyku344nF60Ikz38M"
     perf_id = like_perf_id.id  # 요청 바디에서 perf_id 가져오기
 
     if token:
