@@ -59,7 +59,7 @@ async def get_all_users():
         return [] 
     
     performances_cursor = collection.find({},{'id':1,'email': 1}).limit(100)
-    performances = await performance_cursor.to_list(None)
+    performances = await performances_cursor.to_list(None)
 
     
     return performances
