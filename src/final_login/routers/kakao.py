@@ -168,8 +168,6 @@ async def get_token(request: Request, code: str):
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
 
-
-
 # 로그아웃 처리 엔드포인트
 @router.post("/logout")
 async def logout(request: Request, authorization: str = Header(None)):
@@ -194,8 +192,10 @@ async def logout(request: Request, authorization: str = Header(None)):
         request.session.pop('access_token', None)
 
         # 쿠키에서 access_token 삭제
+
         response = RedirectResponse(url="/")
         response.delete_cookie("access_token")  # 쿠키에서 access_token 삭제
+
 
         # 로그를 위한 device 추출
         device = request.headers.get("User-Agent", "Unknown")
@@ -212,7 +212,8 @@ async def logout(request: Request, authorization: str = Header(None)):
             )
         except Exception as e:
             print(f"Failed to log logout event: {str(e)}")      
-        
+
         return RedirectResponse(url=logout_url)  # 카카오 로그아웃 페이지로 리디렉션
     
     return RedirectResponse(url="/?error=Not logged in", status_code=302)
+
