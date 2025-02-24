@@ -106,7 +106,6 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
             upsert = True
         )
 
-        return result
 
         # 만약 user_id가 존재하지 않으면 새 문서 삽입
         #if result.matched_count == 0:
@@ -138,7 +137,6 @@ async def del_like(request: Request, like_perf_id: LikePerfId):
         }
     )
 
-    return result
 
 
 @router.get("/get_like/admin")
