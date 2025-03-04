@@ -9,9 +9,9 @@ from email.mime.multipart import MIMEMultipart
 
 # MongoDB 연결
 load_dotenv()
-mongo_uri = 'mongodb+srv://hahahello777:VIiYTK9NobgeM1hk@cluster0.5vlv3.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0'
-client = MongoClient(mongo_uri)
+mongo_uri = os.getenv("MONGO_URI")
 print(mongo_uri)
+client = MongoClient(mongo_uri)
 db = client['signup']
 collection = db['user_like']
 
@@ -28,10 +28,12 @@ performs = collection.find({
 #print(performs)
 
 # SMTP 설정
-smtp_sever = "smtp.gmail.com"
+smtp_server = "smtp.naver.com"
 smtp_port = 587
 smtp_user = os.getenv("EMAIL_ID")
 smtp_pw = os.getenv("EMAIL_PW")
+print(smtp_user)
+print(smtp_pw)
 
 def send_email(recipient, subject, body):
     try:
@@ -49,40 +51,33 @@ def send_email(recipient, subject, body):
         print(f"{recipient}에게 이메일 전송 완료")
 
     except Exception as e:
-        print(f"전송 실패: {recipient}")
+        print(f"전송 실패: {recipient}, 오류 내용: {e}")
 
 # 이메일 전송
 for perform in performs:
+    user_id = perform.get('user_id')
+    user_email = perform.get('user_email')
     for performance in perform.get('performances',[]):
         open_date = performance.get('open_date')
         if tomorrow_str in open_date:
             perform_id = performance.get('id', None)
-            user_id = performance.get('user_id', None)
-            user_email = performance.get('user_email', None)
-
-        #title = perform['title']
-        #start_date = perform['start_date']
-        #end_date = perform['end_date']
-        #location = perform['location']
-        #open_date = perform['open_date']
 
             if user_email:
                 email_subject = f"🔔{perform_id} 오픈 알림🔔"
                 email_body = f"""
-                안녕하세요 {user_id}님! 
+                안녕하세요 {user_id}님!<br><br>
 
-                {perform_id}의 티켓이 내일 오픈합니다. 
+                {perform_id}의 티켓이 내일 오픈합니다.<br> 
 
-                오픈 날짜: {open_date}
+                <strong>오픈 날짜</strong> : {open_date}<br><br>
 
-                감사합니다 !
+                감사합니다 !<br>
                 Ticket Moa
                 """
                 send_email(user_email, email_subject, email_body)
            
             else:
-                #print(f"{perform.get('title')}의 open_date가 없습니다")
-                print('메세지 전송 실패')
+                print(f"{user_id}님의 이메일 주소가 없습니다.")
 
 
         
