@@ -1,15 +1,17 @@
 import os
-import pymongo import MongoClient
-from fastapi import APIRouter
+from pymongo import MongoClient
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-router = APIRoute
-mongo_uri = os.getenv("MONGO_URI")
+
+# MongoDB 연결
+load_dotenv()
+mongo_uri = 'mongodb+srv://hahahello777:VIiYTK9NobgeM1hk@cluster0.5vlv3.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0'
 client = MongoClient(mongo_uri)
+print(mongo_uri)
 db = client['signup']
 collection = db['user_like']
 
@@ -20,13 +22,10 @@ tomorrow_str = tomorrow.strftime('%Y.%m.%d')
 
 # open_date가 내일인 데이터 조회
 performs = collection.find({
-    "$expr": {
-        "$eq": [
-            {"$substr": ["$open_date", 0, 10]},  # open_date의 앞 10자 (YYYY.MM.DD)
-            tomorrow_str
-        ]
-    }
+    "performances.open_date": {"$regex": f"^{tomorrow_str}"}
 })
+
+#print(performs)
 
 # SMTP 설정
 smtp_sever = "smtp.gmail.com"
@@ -54,47 +53,37 @@ def send_email(recipient, subject, body):
 
 # 이메일 전송
 for perform in performs:
-    if perform.get('open_date'):
-        perform_id = perform['object_id']
-        user_id = perform['user_id']
-        user_email = perform.get('email_id')
-        title = perform['title']
-        start_date = perform['start_date']
-        end_date = perform['end_date']
-        location = perform['location']
-        open_date = perform['open_date']
+    for performance in perform.get('performances',[]):
+        open_date = performance.get('open_date')
+        if tomorrow_str in open_date:
+            perform_id = performance.get('id', None)
+            user_id = performance.get('user_id', None)
+            user_email = performance.get('user_email', None)
 
-        if user_email:
-            email_subject = f"🔔{title} 오픈 알림🔔"
-            email_body = f"""
-            <html>
-                <body>
-                    <h2>안녕하세요, {user_id}님!</h2>
-                    <p><strong>'{title}'</strong>이/가 내일 오픈합니다! 🎉</p>
-            
-                    <ul>
-                        <li><strong>오픈 날짜:</strong> {open_date}</li>
-                        <li><strong>공연 날짜:</strong> {start_date} ~ {end_date}</li>
-                        <li><strong>장소:</strong> {location}</li>
-                    </ul>
+        #title = perform['title']
+        #start_date = perform['start_date']
+        #end_date = perform['end_date']
+        #location = perform['location']
+        #open_date = perform['open_date']
 
-                    <p>아래 링크를 클릭하여 공연 상세 정보를 확인해 보세요!</p>
-                    <p>
-                        <a href="http://localhost:3000/detail/{perform_id}" 
-                        style="display:inline-block; padding:10px 20px; background:#007BFF; color:white; 
-                          text-decoration:none; border-radius:5px;">
-                        🔗 공연 상세 페이지로 이동
-                        </a>
-                    </p>
+            if user_email:
+                email_subject = f"🔔{perform_id} 오픈 알림🔔"
+                email_body = f"""
+                안녕하세요 {user_id}님! 
 
-                    <p>감사합니다.<br><strong>Ticket Moa</strong></p>
-                </body>
-            </html>
-            """
-            send_email(user_email, email_subject, email_body)
+                {perform_id}의 티켓이 내일 오픈합니다. 
+
+                오픈 날짜: {open_date}
+
+                감사합니다 !
+                Ticket Moa
+                """
+                send_email(user_email, email_subject, email_body)
            
-    else:
-        print(f"{perform.get('title')}의 open_date가 없습니다")
+            else:
+                #print(f"{perform.get('title')}의 open_date가 없습니다")
+                print('메세지 전송 실패')
+
 
         
 
