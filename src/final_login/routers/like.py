@@ -66,8 +66,6 @@ async def get_all_users():
 
 @router.post("/like")
 async def click_like(request: Request, like_perf_id: LikePerfId):
-    #token = request.headers.get("Authorization")
-    #token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwiZXhwIjoxNzQwMzczMTk0fQ.0rBAc7EaGbuP-Rs7tp8inIReruYyku344nF60Ikz38M"
     perf_id = like_perf_id.id
    
     # DB에서 공연정보 가져오기
@@ -79,11 +77,6 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
         # 필요한 필드를 포함한 데이터 준비
         data_to_insert = {
             "id": str(performance_data["_id"]),
-            #"title": performance_data["title"],
-            #"start_date": performance_data["start_date"],
-            #"end_date": performance_data["end_date"],
-            #"poster_url": performance_data["poster_url"],
-            #"location": performance_data["location"],
             "open_date": performance_data["open_date"]
         }
 
