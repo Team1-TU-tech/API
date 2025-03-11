@@ -31,7 +31,7 @@ class TicketData(BaseModel):
     isExclusive: bool
     onSale: bool
     like: bool
-    
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
