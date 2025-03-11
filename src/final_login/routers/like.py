@@ -68,6 +68,16 @@ async def get_all_users():
 async def click_like(request: Request, like_perf_id: LikePerfId):
     perf_id = like_perf_id.id
    
+   
+    user_info = await token_decode_verify(request=request)
+
+    # 사용자 정보 변수 할당
+
+    user_id = user_info["user_id"]
+    gender = user_info["gender"]
+    birthday = user_info["birthday"]
+    email = user_info["email"]
+
     # DB에서 공연정보 가져오기
     connect_perf = connect_perf_db()
     performance_data = await connect_perf.find_one({"_id": ObjectId(perf_id)})
@@ -80,7 +90,7 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
             "open_date": performance_data["open_date"]
         }
 
-        user_data = await connect_like.find_one({"user_id": "gamza"})
+        user_data = await connect_like.find_one({"user_id": user_id})
         
         if user_data:
             # performance_data가 이미 존재하는지 확인
@@ -88,7 +98,7 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
             if not existing_performance:
                 # user_id가 이미 존재하는지 확인하고, 존재하면 해당 문서에 performance_data를 추가
                 result = await connect_like.update_one(
-                    {"user_id": "gamza"},  # user_id로 문서를 찾기
+                    {"user_id": user_id},  # user_id로 문서를 찾기
                 {
                     "$push": {  # performance_data를 'performances'라는 배열 필드에 추가
                         "performances": data_to_insert
@@ -101,8 +111,8 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
                 print("Performance data already exists, skipping insertion.")
         else:
             result = await connect_like.update_one(
-                    {"user_id": "gamza",
-                     "user_email": "test@gmail.com"},  # user_id로 문서를 찾기
+                    {"user_id": user_id,
+                     "user_email": email},  # user_id로 문서를 찾기
                 {
                     "$push": {  # performance_data를 'performances'라는 배열 필드에 추가
                         "performances": data_to_insert
@@ -118,10 +128,13 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
 async def del_like(request: Request, like_perf_id: LikePerfId):
     perf_id = like_perf_id.id
     connect_like = connect_like_db()
+
+    user_info = await token_decode_verify(request=request)
+    user_id = user_info["user_id"]
     
     # 삭제할 데이터를 검색하고 제거
     result = await connect_like.update_one(
-        {"user_id": "gamza"},  # user_id로 문서를 찾음
+        {"user_id": user_id},  # user_id로 문서를 찾음
         {
             "$pull": {  # performance_id가 일치하는 데이터를 배열에서 제거
                 "performances": {"id": perf_id}
@@ -133,7 +146,10 @@ async def del_like(request: Request, like_perf_id: LikePerfId):
 
 @router.get("/get_like")
 async def get_like_performances(request: Request):
-    user_id = "gamza"
+    
+    user_info = await token_decode_verify(request=request)
+    user_id = user_info["user_id"]
+
     # MongoDB에서 ID에 해당하는 문서 찾기
     connect_like = connect_like_db()
 
