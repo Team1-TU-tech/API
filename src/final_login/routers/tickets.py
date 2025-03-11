@@ -55,63 +55,17 @@ async def search_tickets(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
 ):
-    
-    #############로그데이터를 위한 로직 추가##############
-    #body = await request.json()
+
     device = request.headers.get("User-Agent", "Unknown")
-    user_id = request.headers.get("id", "anonymous")
-    token = request.headers.get("Authorization")
-    #user_id = body.get("id", "anonymous")
-    ###############################################
 
-    user_id = "anonymous"  # 기본값 설정
-    gender = None  # 기본값
-    birthday = None  # 기본값
-    email = None # 기본값
+    user_info = await token_decode_verify(request=request)
 
-    if token:
-        try:
-            # JWT 형식인지 확인
-            if "." in token and len(token.split(".")) == 3:
-                # JWT 디코딩 로직
-                try:
-                    decoded_token = verify_token(
-                        token=token,
-                        SECRET_KEY=SECRET_KEY,
-                        ALGORITHM=ALGORITHM,
-                        refresh_token=None,
-                        expires_delta=None
-                    )
-                    user_id = decoded_token.get("id", "anonymous")
-                    user_info = await user_collection.find_one({"id": user_id})
-                    if user_info:
-                        gender = user_info.get("gender", None)
-                        birthday = user_info.get("birthday", None)
-                        email = user_info.get("email", None)
-                except JWTError as e:
-                    raise HTTPException(status_code=401, detail="Invalid JWT token.")
-            else:
-                # Step 1: Kakao API를 사용하여 사용자 정보 가져오기
-                user_info = kakao_api.get_kakao_user_info(token)  # `token`이 access_token으로 전달됨
-                #print("[DEBUG] User info fetched from Kakao API:", user_info)
-                
-                user_id = user_info["id"]
-                email = user_info.get("kakao_account", {}).get("email", None)
-                
-                # Step 2: MongoDB에서 user_id 조회
-                user = await kakao_collection.find_one({"user_id": user_id})  # MongoDB에서 user_id 조회
-                
-                if user:
-                    gender = user.get("gender", None)
-                    birthday = user.get("birthday", None)
-                    email = user.get("email", None)
-                else:
-                    raise HTTPException(status_code=401, detail="User not found in Kakao collection")
-                
-        except HTTPException as e:
-            raise HTTPException(status_code=401, detail="Token verification failed.")
-    else:
-        user_id = "anonymous"  # 기본값 설정
+    # 사용자 정보 변수 할당
+
+    user_id = user_info["user_id"]
+    gender = user_info["gender"]
+    birthday = user_info["birthday"]
+    email = user_info["email"]
 
     today = datetime.now().strftime("%Y.%m.%d")
 
@@ -209,62 +163,18 @@ async def search_tickets(
 @router.get("/detail/{id}")
 async def get_detail_by_id(request: Request, id: str):
 
-    #############로그데이터를 위한 로직 추가##############
-    #body = await request.json()
+
     device = request.headers.get("User-Agent", "Unknown")
-    #user_id = body.get("id", "anonymous")
-    user_id = request.headers.get("id", "anonymous")
-    token = request.headers.get("Authorization")
-    ###############################################
 
-    user_id = "anonymous"  # 기본값 설정
-    gender = None  # 기본값
-    birthday = None  # 기본값
-    email = None # 기본값
+    user_info = await token_decode_verify(request=request)
 
-    if token:
-        try:
-            # JWT 형식인지 확인
-            if "." in token and len(token.split(".")) == 3:
-                # JWT 디코딩 로직
-                try:
-                    decoded_token = verify_token(
-                        token=token,
-                        SECRET_KEY=SECRET_KEY,
-                        ALGORITHM=ALGORITHM,
-                        refresh_token=None,
-                        expires_delta=None
-                    )
-                    user_id = decoded_token.get("id", "anonymous")
-                    user_info = await user_collection.find_one({"id": user_id})
-                    if user_info:
-                        gender = user_info.get("gender", None)
-                        birthday = user_info.get("birthday", None)
-                        email = user_info.get("email", None)
-                except JWTError as e:
-                    raise HTTPException(status_code=401, detail="Invalid JWT token.")
-            else:
-                # Step 1: Kakao API를 사용하여 사용자 정보 가져오기
-                user_info = kakao_api.get_kakao_user_info(token)  # `token`이 access_token으로 전달됨
-                #print("[DEBUG] User info fetched from Kakao API:", user_info)
-                
-                user_id = user_info["id"]
-                email = user_info.get("kakao_account", {}).get("email", None)
-                # Step 2: MongoDB에서 user_id 조회
-                user = await kakao_collection.find_one({"user_id": user_id})  # MongoDB에서 user_id 조회
-                
-                if user:
-                    gender = user.get("gender", None)
-                    birthday = user.get("birthday", None)
-                    email = user.get("email", None)
-                else:
-                    raise HTTPException(status_code=401, detail="User not found in Kakao collection")
-                
-        except HTTPException as e:
-            raise HTTPException(status_code=401, detail="Token verification failed.")
-    else:
-        user_id = "anonymous"  # 기본값 설정
+    # 사용자 정보 변수 할당
 
+    user_id = user_info["user_id"]
+    gender = user_info["gender"]
+    birthday = user_info["birthday"]
+    email = user_info["email"]
+    
     try:
         object_id = ObjectId(id)
         result = await collection.find_one({"_id": object_id})

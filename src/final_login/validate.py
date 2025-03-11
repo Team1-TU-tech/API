@@ -7,6 +7,7 @@ from src.final_login.db_model import user_collection, User
 from fastapi import Request
 from src.final_login.log_handler import log_event
 from datetime import datetime, timedelta
+from src.final_login.routers.kakao import *
 
 load_dotenv()
 
@@ -80,3 +81,59 @@ async def validate_user(request: Request, user: User):
         except HTTPException as e:
             raise e  # HTTPException을 다시 raise하여 클라이언트에게 전달
     return stored_user
+
+
+async def token_decode_verify(request: Request):
+
+    user_id = request.headers.get("id", "anonymous")
+    token = request.headers.get("Authorization")
+
+    gender = None  # 기본값
+    birthday = None  # 기본값
+    email = None # 기본값
+
+
+    if not token:
+        return {"user_id": user_id, "gender": gender, "birthday": birthday, "email": email}
+
+    try:
+        # JWT 형식인지 확인
+        if "." in token and len(token.split(".")) == 3:
+            # JWT 디코딩 로직
+            try:
+                decoded_token = verify_token(
+                    token=token,
+                    SECRET_KEY=SECRET_KEY,
+                    ALGORITHM=ALGORITHM,
+                    refresh_token=None,
+                    expires_delta=None
+                )
+                user_id = decoded_token.get("id", "anonymous")
+                user_info = await user_collection.find_one({"id": user_id})
+                if user_info:
+                    gender = user_info.get("gender", None)
+                    birthday = user_info.get("birthday", None)
+                    email = user_info.get("email", None)
+            except JWTError as e:
+                raise HTTPException(status_code=401, detail="Invalid JWT token.")
+        else:
+            # Step 1: Kakao API를 사용하여 사용자 정보 가져오기
+            user_info = kakao_api.get_kakao_user_info(token)  # `token`이 access_token으로 전달됨
+            #print("[DEBUG] User info fetched from Kakao API:", user_info)
+            
+            user_id = user_info["id"]
+            email = user_info.get("kakao_account", {}).get("email", None)
+            # Step 2: MongoDB에서 user_id 조회
+            user = await kakao_collection.find_one({"user_id": user_id})  # MongoDB에서 user_id 조회
+            
+            if user:
+                gender = user.get("gender", None)
+                birthday = user.get("birthday", None)
+                email = user.get("email", None)
+            else:
+                raise HTTPException(status_code=401, detail="User not found in Kakao collection")
+            
+    except HTTPException as e:
+        raise HTTPException(status_code=401, detail="Token verification failed.")
+
+    return {"user_id": user_id, "gender": gender, "birthday": birthday, "email": email}
