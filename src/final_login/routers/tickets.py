@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 from src.final_login.validate import *
 from src.final_login.routers.kakao import *
+from src.final_login.routers.like import *
 
 load_dotenv()  # .env 파일에서 변수 로드
 
@@ -36,6 +37,7 @@ class TicketData(BaseModel):
     category: Optional[str]
     isExclusive: bool
     onSale: bool
+    is_liked: bool
 
 # 날짜 문자열을 datetime 객체로 변환하는 함수
 def parse_date(date_string: str) -> Optional[datetime]:
@@ -43,7 +45,6 @@ def parse_date(date_string: str) -> Optional[datetime]:
         return datetime.strptime(date_string, "%Y.%m.%d").strftime("%Y.%m.%d")
     except ValueError:
         return None
-
 
 # 티켓 검색 API
 @router.get("/search", response_model=List[TicketData])
@@ -63,6 +64,8 @@ async def search_tickets(
     # 사용자 정보 변수 할당
 
     user_id = user_info["user_id"]
+    #user_id = "3811135326"
+    
     gender = user_info["gender"]
     birthday = user_info["birthday"]
     email = user_info["email"]
@@ -119,6 +122,19 @@ async def search_tickets(
                 on_sale = True
             else:
                 on_sale = False
+
+            # 요청 헤더에서 user_id 가져오기
+            user_id = user_info["user_id"]
+            connect_like = connect_like_db()
+            user_like_data = await connect_like.find_one({"user_id": user_id})
+
+            # 좋아요한 공연 ID 리스트 추출
+            liked_performance_ids = set()
+            if user_like_data and isinstance(user_like_data, dict):  # 딕셔너리인지 확인
+                performances = user_like_data.get("performances", [])  # get()을 사용해 접근
+                if isinstance(performances, list):  # 리스트인지 확인
+                    liked_performance_ids = {p["id"] for p in performances if isinstance(p, dict) and "id" in p}
+
         except (ValueError, TypeError) as e:
             if ticket_url and isinstance(end_date_str, str) and end_date_str == "상시공연":
                 on_sale = True
@@ -135,7 +151,8 @@ async def search_tickets(
             "end_date": ticket.get("end_date"),
             "category": ticket.get("category"),
             "isExclusive": isexclusive,
-            "onSale": on_sale
+            "onSale": on_sale,
+            "is_liked": str(ticket.get("_id")) in liked_performance_ids
         }
         tickets.append(ticket_data)
     
@@ -158,6 +175,7 @@ async def search_tickets(
         print(f"Error logging event: {e}")
 
     return tickets
+
 
 # ID로 상세 조회
 @router.get("/detail/{id}")

@@ -47,7 +47,7 @@ async def get_performances_this_weekend(request: Request):
     # 요청 헤더에서 user_id 가져오기
     user_info = await token_decode_verify(request=request)
     user_id = user_info["user_id"]
-
+    #user_id = "3811135326"
     connect_like = connect_like_db()
 
     user_like_data = await connect_like.find_one({"user_id": user_id})

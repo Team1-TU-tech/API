@@ -15,7 +15,11 @@ app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 
 # CORS 설정
-origins = [f"http://{API_APP_HOST}:3000", "http://{API_APP_HOST}:8000"]
+#origins = [f"http://{API_APP_HOST}:3000", f"http://{API_APP_HOST}:8000"]
+origins = [
+    f"http://{API_APP_HOST}:3000",
+    f"http://{API_APP_HOST}:8000",
+]
 
 app.add_middleware(
     CORSMiddleware,
