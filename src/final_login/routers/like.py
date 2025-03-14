@@ -87,7 +87,11 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
         # 필요한 필드를 포함한 데이터 준비
         data_to_insert = {
             "id": str(performance_data["_id"]),
-            "open_date": performance_data["open_date"]
+            "open_date": performance_data["open_date"],
+            "end_date": performance_data["end_date"],
+            "poster_url": performance_data["poster_url"],
+            "location": performance_data["location"],
+            "title": performance_data["title"],
         }
 
         user_data = await connect_like.find_one({"user_id": user_id})
@@ -158,5 +162,5 @@ async def get_like_performances(request: Request):
         return find_user.get("performances", [])
 
     else:
-        raise HTTPException(status_code=404, detail="User not found")
+        return []
 

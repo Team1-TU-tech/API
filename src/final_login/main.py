@@ -19,6 +19,8 @@ app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 origins = [
     f"http://{API_APP_HOST}:3000",
     f"http://{API_APP_HOST}:8000",
+    "http://localhost:3000",
+    "http://localhost:8000",
 ]
 
 app.add_middleware(
