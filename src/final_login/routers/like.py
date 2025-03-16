@@ -87,7 +87,7 @@ async def click_like(request: Request, like_perf_id: LikePerfId):
         # 필요한 필드를 포함한 데이터 준비
         data_to_insert = {
             "id": str(performance_data["_id"]),
-            "open_date": performance_data["open_date"],
+            "start_date": performance_data["start_date"],
             "end_date": performance_data["end_date"],
             "poster_url": performance_data["poster_url"],
             "location": performance_data["location"],
