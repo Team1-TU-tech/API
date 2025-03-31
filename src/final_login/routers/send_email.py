@@ -10,7 +10,6 @@ from email.mime.multipart import MIMEMultipart
 # MongoDB 연결
 load_dotenv()
 mongo_uri = os.getenv("MONGO_URI")
-print(mongo_uri)
 client = MongoClient(mongo_uri)
 db = client['signup']
 collection = db['user_like']
@@ -25,15 +24,11 @@ performs = collection.find({
     "performances.open_date": {"$regex": f"^{tomorrow_str}"}
 })
 
-#print(performs)
-
 # SMTP 설정
 smtp_server = "smtp.naver.com"
 smtp_port = 587
 smtp_user = os.getenv("EMAIL_ID")
 smtp_pw = os.getenv("EMAIL_PW")
-print(smtp_user)
-print(smtp_pw)
 
 def send_email(recipient, subject, body):
     try:
@@ -57,35 +52,37 @@ def send_email(recipient, subject, body):
 for perform in performs:
     user_id = perform.get('user_id')
     user_email = perform.get('user_email')
+
+    if not user_email:
+        print(f'{user_id}의 이메일이 없습니다!')
+        continue
+
     for performance in perform.get('performances',[]):
         open_date = performance.get('open_date')
-        if tomorrow_str in open_date:
+        if open_date and tomorrow_str in open_date:
             open_date = performance.get('open_date')
             poster_url = performance.get('poster_url')
             location = performance.get('location')
             title = performance.get('title')
 
-            if user_email:
-                email_subject = f"🔔{title} 오픈 알림🔔"
-                email_body = f"""
-                안녕하세요 {user_id}님!<br><br>
+            email_subject = f'🔔"{title}" 오픈 알림🔔'
+            email_body = f"""
+            안녕하세요 {user_id}님!<br><br>
 
-                {title}의 티켓이 내일 오픈합니다.<br> 
-
-                {poster_url}
-
-                <strong>티켓 오픈</strong> : {open_date}
-                <strong>공연 이름</strong> : {title}
-                <strong>장    소</strong> : {location}
-
-                감사합니다 !<br>
-                Ticket Moa
-                """
-                send_email(user_email, email_subject, email_body)
-           
-            else:
-                print(f"{user_id}님의 이메일 주소가 없습니다.")
-                
+            <strong>"{title}"</strong>의 티켓이 내일 오픈합니다.<br>
+            <br>
+            <strong>티켓 오픈</strong> : {open_date}<br>
+            <strong>공연 이름</strong> : {title}<br>
+            <strong>공연 장소</strong> : {location}<br>
+            <br>
+            <img src="{poster_url}" alt="포스터" style="max-width: 500px;"><br>
+            <br>
+            감사합니다 !<br>
+            <br>
+            <strong>Ticket Moa</strong>
+            """
+            send_email(user_email, email_subject, email_body)   
+        
 
 
         
