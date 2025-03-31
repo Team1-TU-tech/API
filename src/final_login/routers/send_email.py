@@ -60,16 +60,23 @@ for perform in performs:
     for performance in perform.get('performances',[]):
         open_date = performance.get('open_date')
         if tomorrow_str in open_date:
-            perform_id = performance.get('id', None)
+            open_date = performance.get('open_date')
+            poster_url = performance.get('poster_url')
+            location = performance.get('location')
+            title = performance.get('title')
 
             if user_email:
-                email_subject = f"🔔{perform_id} 오픈 알림🔔"
+                email_subject = f"🔔{title} 오픈 알림🔔"
                 email_body = f"""
                 안녕하세요 {user_id}님!<br><br>
 
-                {perform_id}의 티켓이 내일 오픈합니다.<br> 
+                {title}의 티켓이 내일 오픈합니다.<br> 
 
-                <strong>오픈 날짜</strong> : {open_date}<br><br>
+                {poster_url}
+
+                <strong>티켓 오픈</strong> : {open_date}
+                <strong>공연 이름</strong> : {title}
+                <strong>장    소</strong> : {location}
 
                 감사합니다 !<br>
                 Ticket Moa
@@ -78,6 +85,7 @@ for perform in performs:
            
             else:
                 print(f"{user_id}님의 이메일 주소가 없습니다.")
+                
 
 
         
